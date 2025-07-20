@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Live Speech to Text</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+        }
+        #interim {
+            color: gray;
+        }
+        #final {
+            font-weight: bold;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Speak and see the text below:</h2>
+<p><span id="final"></span><span id="interim"></span></p>
+<button onclick="startRecognition()">Start Listening</button>
+
+<script>
+    let finalText = '';
+    let recognition;
+
+    function startRecognition() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (!SpeechRecognition) {
+            alert("Speech Recognition not supported in this browser.");
+            return;
+        }
+
+        recognition = new SpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.continuous = true;
+        recognition.interimResults = true;
+
+        recognition.onresult = (event) => {
+            let interimText = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalText += transcript + ' ';
+                } else {
+                    interimText += transcript;
+                }
+            }
+            document.getElementById('final').textContent = finalText;
+            document.getElementById('interim').textContent = interimText;
+        };
+
+        recognition.onerror = (e) => {
+            console.error('Speech recognition error:', e);
+        };
+
+        recognition.onend = () => {
+            console.log('Speech recognition ended. Restarting...');
+            recognition.start(); // restart on stop
+        };
+
+        recognition.start();
+    }
+</script>
+
+</body>
+</html>

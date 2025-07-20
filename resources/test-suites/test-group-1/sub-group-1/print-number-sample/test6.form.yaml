@@ -1,0 +1,56 @@
+key1:
+  type: select
+  defaultValue:
+    - Test Number 1
+  required: true
+  label: Test Number of the First Batch
+  description: test
+  options:
+    - Test Number 1
+    - Test Number 2
+key2:
+  type: number
+  required: true
+  maxValue: 100
+  minValue: 10
+  defaultValue: 25
+  description: sdaas,
+  placeHolder: 10
+  label: Insert Category
+  step: 0.0001
+  inputExample: 1
+key3:
+  type: select
+  maxSelections: 10
+  minSelection: 1
+  defaultValue:
+    - Test Number 1
+  required: true
+  label: Test Number to Execute After First Batch
+  description: test
+  options:
+    - Test Number 1
+    - Test Number 2
+    - Test Number 3
+key4:
+  type: text
+  maxLength: 10
+  minLength: 1
+  required: true
+  defaultValue: 1
+  pattern: '[0-9]'
+  description: sdaas,
+  placeHolder: testtt
+  label: Insert Proc Number
+  inputExample: 1
+key5:
+  type: select
+  defaultValue:
+    - Test Number 1
+  required: false
+  label: Test Number of the First Batch
+  description: test
+  maxSelections: 1
+  options:
+    - Test Number 1
+    - Test Number 2

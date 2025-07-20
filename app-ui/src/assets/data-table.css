@@ -1,0 +1,29 @@
+.data-table {
+    border-collapse: separate;
+    border-spacing: 0;
+
+    & thead > tr {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: white;
+    }
+
+    & th {
+        text-align: left;
+        border-bottom: 1px solid black;
+        padding: var(--element-gap);
+    }
+
+    & td {
+        text-align: left;
+        padding: var(--element-gap);
+        cursor: pointer;
+    }
+
+    & tr:hover > td,
+    & tr[data-selected='true'] {
+        background: rgba(128, 128, 128, 0.2);
+        transition: background 100ms ease-in-out;
+    }
+}

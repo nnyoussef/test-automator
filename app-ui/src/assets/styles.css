@@ -1,0 +1,110 @@
+.selectables-container {
+    display: flex;
+    flex-direction: column;
+
+    & > .row {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        contain: size;
+    }
+
+    & > .row > .selectable,
+    & > .selectable {
+        text-decoration: none;
+        color: var(--primary-color);
+        font-weight: bold;
+        font-size: 13pt;
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        height: 40%;
+        padding: 0 8px;
+        align-content: center;
+        transition: background-color 0.3s;
+        border-radius: 8px;
+        border: 2px solid transparent;
+        background-clip: padding-box;
+        contain: content;
+        cursor: pointer;
+    }
+
+    & .selectable[data-selected='true'] {
+        background: var(--primary-color);
+        color: var(--secondary-color);
+    }
+
+    & .selectable:hover {
+        border: 2px solid var(--primary-color);
+        box-shadow: var(--box-shadow);
+    }
+}
+
+.section-list-container > section {
+    margin: var(--element-gap) 0 0 var(--element-gap);
+    contain: content;
+}
+
+button.icon-button {
+    font-weight: bold;
+    cursor: pointer;
+    --color: none;
+    background: none;
+    color: var(--color);
+    border-radius: 8px;
+    border: 2px solid transparent;
+
+    &:hover:not(.no-hover) {
+        box-shadow: var(--box-shadow);
+        border: 2px solid var(--color);
+    }
+}
+
+.button {
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    background: white;
+    color: var(--primary-color);
+    font-size: 12pt;
+    border: 1px solid var(--primary-color);
+    padding: 8px;
+    width: fit-content;
+    margin: var(--element-gap) 0;
+
+    &:hover {
+        box-shadow: var(--box-shadow);
+    }
+
+    &:active {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    &:not(:first-child) {
+        margin-left: var(--element-gap);
+    }
+}
+
+.spinning-animation {
+    animation: spin 0.3s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
