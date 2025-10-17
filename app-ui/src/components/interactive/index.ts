@@ -1,4 +1,4 @@
-import type { KeyValueMap, SingleOrArray, TextOrNumber } from '@/common/types.ts';
+import type { CommonComponentAttribute } from '@/common/types.ts';
 
 type IconButtonProps = {
     icon: string;
@@ -7,27 +7,35 @@ type IconButtonProps = {
     buttonId?: string;
     buttonLabel?: string;
     isDarkTheme?: boolean;
-    buttonTextColor: string;
+    buttonTextColor?: string;
     iconColor?: string;
     animationName?: string;
     animationInProgress?: boolean;
     disabled?: boolean;
-    buttonRole?: string;
-    buttonValue?: TextOrNumber;
     disableHoverCss?: boolean;
     tooltipShow?: boolean;
     tooltipContent?: string;
+} & CommonComponentAttribute;
+
+interface FileSelectorProps {
+    files: Readonly<Array<Readonly<FileProps>>>;
+    selectPath?: string;
+}
+
+type FileProps = {
+    directory: string;
+    name: string;
+    path: string;
+    selected: boolean;
 };
 
-type FileSelectorProps = {
-    files: Array<Readonly<{ name: string; location: string }>>;
-    highlightAtLocation?: string;
-};
-
-type DirStruct = KeyValueMap<{
-    files: { name: string; path: string }[];
-    subDir: DirStruct;
-}>;
+interface DirStruct {
+    currentWorkingDirectoryPath: string;
+    currentWorkingDirectoryName?: string;
+    files: FileProps[];
+    subDir: Record<string, DirStruct>;
+    parentDir?: DirStruct;
+}
 
 interface SelectableItemsTableProps<T> {
     itemToRowMapper: Function;
@@ -39,13 +47,7 @@ interface SelectableItemsTableProps<T> {
     disableSelectRow?: boolean;
 }
 
-type ButtonListProps = {
-    values: SingleOrArray<string>;
-    seperator?: string;
-    role?: string;
-};
-
-interface BreadCrumbProps {
+interface BreadCrumbProps extends CommonComponentAttribute {
     items: Array<{ label: string; value: string; iconName?: string; iconColor?: string }>;
     itemsSeperator?: string;
 }
@@ -55,6 +57,6 @@ export type {
     FileSelectorProps,
     DirStruct,
     SelectableItemsTableProps,
-    ButtonListProps,
     BreadCrumbProps,
+    FileProps,
 };

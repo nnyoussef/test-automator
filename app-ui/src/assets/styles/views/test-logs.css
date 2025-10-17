@@ -1,0 +1,29 @@
+.test-summary {
+    border-top: var(--border-thick-solid) black;
+    font-weight: bold;
+    height: 48px;
+    align-content: center;
+    margin-top: 16px;
+}
+
+.test-log-container {
+    height: calc(100% - 55px);
+    content-visibility: auto;
+    contain-intrinsic-size: 5000px;
+    will-change: transform;
+    overflow: auto;
+    margin-top: var(--element-gap);
+
+    .test-log-item {
+        min-height: 60px;
+        contain: strict;
+        align-content: center;
+        width: calc(100% - var(--element-gap) - 4px);
+    }
+
+    .html-report {
+        border: none;
+        width: 100%;
+        height: calc(100% );
+    }
+}

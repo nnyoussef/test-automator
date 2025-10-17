@@ -1,0 +1,24 @@
+:root {
+    --page-margin: 128px;
+    --element-gap: 8px;
+    --containers-gap: 24px;
+    --border-thick-solid: 2px solid;
+    --border-thin-dashed: 1px dashed;
+    --border-thick-dashed: 2px dashed;
+    --box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
+    --application-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+    --primary-color: #0ABAB5;
+    --primary-accent-color: #00BFA5;
+    --secondary-color: white;
+    --secondary-accent-color: #00BFA5;
+
+    --neutral-color: light-dark(#f7f0ff, #072446);
+    --neutral-accent-color: light-dark(#044c9f, #a4cefe);
+    --success-color: light-dark(#eaf6ef, #0c311c);
+    --success-accent-color: light-dark(#065b29, #70eba3);
+    --warning-color: light-dark(#fef0c3, #3f220d);
+    --warning-accent-color: light-dark(#c2570a, #fae49e);
+    --error-color: light-dark(#ffe6ea, #4b0b16);
+    --error-accent-color: light-dark(#b7102c, #fc7d92);
+}

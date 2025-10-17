@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import HorizontalLayout from '@/components/layouts/HorizontalLayout.vue';
+import HorizontalBox from '@/components/layouts/HorizontalBox.vue';
 import IconContainer from '@/components/icons/IconContainer.vue';
 import { ref, watchEffect } from 'vue';
 import type { IconButtonProps } from '@/components/interactive/index.ts';
@@ -26,7 +26,7 @@ watchEffect(() => {
 });
 </script>
 <template>
-    <div>
+    <div :data-role="role" :data-value="value">
         <button
             :disabled="disabled"
             class="icon-button anchor"
@@ -36,30 +36,28 @@ watchEffect(() => {
                 anchorName,
             }"
             :title="buttonLabel"
-            :data-role="buttonRole"
-            :data-element-value="buttonValue"
+            :data-role="role"
+            :data-tag="tag"
+            :data-value="value"
             type="button"
             :id="buttonId"
         >
-            <HorizontalLayout
-                :data-element-value="buttonValue"
-                style="gap: 4px"
-                :data-role="buttonRole"
-            >
+            <HorizontalBox style="gap: 4px" :data-role="role" :data-tag="tag" :data-value="value">
                 <IconContainer
                     :fill="iconColor ?? buttonTextColor"
                     :icon="icon"
                     :class-name="iconContainerClassName"
                     :size="iconSize"
-                    :role="buttonRole"
-                    :value="buttonValue"
+                    :role="role"
+                    :data-value="value"
+                    :tag="tag"
                 />
                 {{ buttonLabel }}
-            </HorizontalLayout>
+            </HorizontalBox>
         </button>
         <TooltipView :anchorName="anchorName" :tooltipShow="tooltipShow">
             {{ tooltipContent }}
         </TooltipView>
     </div>
 </template>
-<style scoped></style>
+<style src="@/assets/styles/component/icon-button.css" />

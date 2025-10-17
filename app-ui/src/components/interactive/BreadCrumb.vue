@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { BreadCrumbProps } from '@/components/interactive';
-import HorizontalLayout from '@/components/layouts/HorizontalLayout.vue';
+import HorizontalBox from '@/components/layouts/HorizontalBox.vue';
 import IconContainer from '@/components/icons/IconContainer.vue';
 
 withDefaults(defineProps<BreadCrumbProps>(), {
@@ -15,12 +15,12 @@ function onItemClicked(ev: MouseEvent) {
     let el: HTMLElement = (
         target instanceof SVGElement ? target.parentElement : target
     ) as HTMLElement;
-    emits('onItemClicked', el.dataset.elementValue ?? '');
+    emits('onItemClicked', el.dataset.value ?? '');
 }
 </script>
 
 <template>
-    <HorizontalLayout>
+    <HorizontalBox>
         <TransitionGroup
             name="fade"
             tag="ul"
@@ -28,25 +28,17 @@ function onItemClicked(ev: MouseEvent) {
             :style="{ '--items-separator': `'${itemsSeperator}'` }"
             @click="onItemClicked($event)"
         >
-            <template v-for="item of items" :key="item.value">
+            <li v-for="item of items" :key="item.value">
                 <IconContainer
                     v-if="item.iconName"
                     :icon="item.iconName"
                     :fill="item.iconColor ?? 'var(--primary-color)'"
-                    button-value=""
-                ></IconContainer>
-                <li v-else :data-element-value="item.value">
-                    <a :data-element-value="item.value">{{ item.label }}</a>
-                </li>
-            </template>
+                    :value="item.value"
+                />
+                <a v-else :data-value="item.value">{{ item.label }}</a>
+            </li>
         </TransitionGroup>
-    </HorizontalLayout>
+    </HorizontalBox>
 </template>
 
-<style scoped>
-.fade-move,
-.fade-enter-active,
-.fade-leave-active {
-    transition: opacity 0.2s ease;
-}
-</style>
+<style src="@/assets/styles/component/breadcrumb.css" scoped />

@@ -1,0 +1,39 @@
+.breadcrumb {
+    --spacing: 8px;
+    --items-separator: '>';
+    --separator-color: #999;
+    --font-size: 12pt;
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    gap: var(--spacing);
+
+    & > li {
+        display: inline-flex;
+        align-items: center;
+        cursor: pointer;
+        a {
+            color: var(--primary-color);
+            font-size: var(--font-size);
+            font-weight: bold;
+            cursor: pointer;
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+
+        &:not(:last-child):not(.exclude-separator)::after {
+            content: var(--items-separator);
+            padding-left: var(--spacing);
+            color: var(--separator-color);
+            font-weight: normal;
+        }
+    }
+
+    .fade-move,
+    .fade-enter-active,
+    .fade-leave-active {
+        transition: opacity 0.2s ease;
+    }
+}

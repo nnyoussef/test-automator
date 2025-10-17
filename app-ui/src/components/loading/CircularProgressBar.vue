@@ -1,5 +1,5 @@
 <template>
-    <div :style="{ width: `${size}px`, height: `${size}px` }">
+    <div class="circular-progress-bar" :style="{ width: `${size}px`, height: `${size}px` }">
         <svg :width="size" :height="size">
             <circle
                 :cx="cx"
@@ -67,28 +67,4 @@ function calculateArcPath(percent: number) {
 }
 </script>
 
-<style lang="css" scoped>
-p.inprogress {
-    position: relative;
-    margin: 0;
-    text-align: center;
-    color: var(--primary-color);
-}
-
-p.done {
-    position: relative;
-    margin: 0;
-    text-align: center;
-    color: green;
-    animation: fadeIn 0.5s ease-in-out;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-</style>
+<style src="@/assets/styles/component/circular-progress-bar.css" lang="css" scoped />

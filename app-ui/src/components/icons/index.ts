@@ -1,11 +1,9 @@
-import type { TextOrNumber } from '@/common/types.ts';
+import type { CommonComponentAttribute } from '@/common/types.ts';
 
-export interface IconContainerProps {
+export interface IconContainerProps extends CommonComponentAttribute {
     icon: string;
     fill?: string;
     size?: string;
     className?: string | [];
-    label?: string;
-    role?: string;
-    value?: TextOrNumber;
+    height?: string;
 }

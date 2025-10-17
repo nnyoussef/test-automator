@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Feature: Test N01 — Workflow Documentation</title>
+    <style>
+        body { font-family: system-ui, sans-serif; background-color: #f9fafb; color: #0f172a; padding: 40px; line-height: 1.6; }
+        h1, h2 { color: #047857; }
+        section { margin-bottom: 32px; }
+        .workflow { display: flex; flex-direction: column; align-items: center; margin-top: 20px; }
+        .node { background: #ecfdf5; border: 2px solid #10b981; border-radius: 12px; padding: 16px 24px; margin: 8px 0; text-align: center; width: 320px; font-weight: 600; }
+        .arrow { color: #10b981; font-size: 24px; margin: 4px 0; }
+        .highlight { background: #ecfdf5; border: 1px solid #a7f3d0; padding: 16px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+<h1>Feature: Test N01 — User Posts Report</h1>
+
+<section>
+    <h2>Objective</h2>
+    <p>
+        The purpose of this test is to demonstrate a data aggregation workflow using two API endpoints. The test retrieves user and post data, groups them logically, and then displays the combined results in a user interface.
+    </p>
+</section>
+
+<section>
+    <h2>Workflow Overview</h2>
+    <div class="workflow">
+        <div class="node">API Request → <br><strong>GET /posts</strong></div>
+        <div class="arrow">⬇</div>
+        <div class="node">Group posts by <strong>userId</strong></div>
+        <div class="arrow">⬇</div>
+        <div class="node">API Request → <br><strong>GET /users</strong></div>
+        <div class="arrow">⬇</div>
+        <div class="node">Group users by <strong>id</strong></div>
+        <div class="arrow">⬇</div>
+        <div class="node">Render Data to UI via <strong>ui-output.html.feature</strong></div>
+    </div>
+</section>
+
+<section>
+    <h2>Data Flow Description</h2>
+    <p>
+        The workflow begins by calling two public endpoints from <code>jsonplaceholder.typicode.com</code>. The first API returns a list of posts, which are grouped by the ID of the user who created them. The second API returns user details, grouped by user ID. Once both sets of data are structured, they are combined and passed to a UI rendering template to produce a report-like interface.
+    </p>
+</section>
+
+<section>
+    <h2>Expected UI Output</h2>
+    <div class="highlight">
+        <h3>Example of Rendered Output</h3>
+        <ul>
+            <li>
+                <strong>Leanne Graham</strong> (@Bret)
+                <ul>
+                    <li><em>Post:</em> sunt aut facere repellat provident occaecati excepturi</li>
+                    <li><em>Post:</em> qui est esse</li>
+                </ul>
+            </li>
+            <li>
+                <strong>Ervin Howell</strong> (@Antonette)
+                <ul>
+                    <li><em>Post:</em> nesciunt quas odio</li>
+                    <li><em>Post:</em> dolorem eum magni eos aperiam</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+    <p>
+        The user interface presents each user along with their related posts, providing a clear visual report that correlates both datasets.
+    </p>
+</section>
+
+<section>
+    <h2>Summary</h2>
+    <ul>
+        <li>Two APIs are called: <strong>posts</strong> and <strong>users</strong>.</li>
+        <li>The results are grouped by their respective identifiers (<code>userId</code> and <code>id</code>).</li>
+        <li>The grouped results are passed to a UI feature that displays the aggregated data.</li>
+        <li>The final output is an HTML report showing users and their corresponding posts.</li>
+    </ul>
+</section>
+</body>
+</html>

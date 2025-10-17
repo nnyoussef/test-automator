@@ -1,17 +1,24 @@
 <script lang="ts" setup>
 import { useRouter } from 'vue-router';
-import { onMounted, onUnmounted, provide, reactive } from 'vue';
-import { HtmlAttributesConstants } from '../common/constantes/html-constants.ts';
+import { onMounted, onUnmounted, provide, ref } from 'vue';
 import { createAppInteractor } from './app.interactor.ts';
-import { appEvents, AppEventsInjectionKey } from './app.events.ts';
-import '@/assets/styles.css';
+import { AppEventsInjectionKey, type AppEvents } from './app.events.ts';
 import { useRequestAnimationFrame } from '@/components/composable/animation-frame.ts';
+import { HtmlAttributesConstants } from '@/common/constantes/html-constants.ts';
+import type { NoteCardViewProps } from '@/components/containers';
+import Toast from '@/components/containers/Toast.vue';
+import { Subject } from 'rxjs';
 
 const appInteractor = createAppInteractor();
 
+const appEvents: AppEvents = {
+    RUN_TEST: new Subject<string>(),
+    POPUP: new Subject(),
+};
+
 provide(AppEventsInjectionKey, appEvents);
 const router = useRouter();
-const popUpOk = reactive([]);
+const popMessage = ref<{ type: NoteCardViewProps['type']; message: string }>();
 
 onMounted(() => {
     const tabContainer = document.getElementById('app-header-tab-container');
@@ -44,12 +51,19 @@ onMounted(() => {
     );
 
     appEvents.RUN_TEST.subscribe((uuid: string) => {
-        router.push({ path: '/test-logs', query: { uuid } }).then(() => {
-            appInteractor.handleRunTestEvent(uuid);
-        });
+        router.push({ path: '/test-logs', query: { uuid } }).then(() =>
+            appInteractor.handleRunTestEvent(uuid, () => {
+                appEvents?.POPUP.next({
+                    type: 'error',
+                    message: 'Error while streaming test logs',
+                });
+            }),
+        );
     });
 
-    appEvents.POPUP_OK.subscribe(alert);
+    appEvents.POPUP.subscribe((event) => {
+        popMessage.value = { type: event.type, message: event.message };
+    });
 });
 onUnmounted(() => {
     appInteractor.destroy();
@@ -57,10 +71,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div style="background: green; position: absolute" v-for="item in popUpOk" :key="item">
-        {{ item }}
-    </div>
     <div class="inflexible-container" style="height: 100%">
-        <RouterView></RouterView>
+        <Toast :content="popMessage" to="#app-popups" :duration="5000" :limit="5" />
+        <RouterView />
     </div>
 </template>
+<style />

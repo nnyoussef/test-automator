@@ -1,0 +1,27 @@
+@import 'icon-button.css';
+
+.circular-progress-bar {
+    & p.inprogress {
+        position: relative;
+        margin: 0;
+        text-align: center;
+        color: var(--primary-color);
+    }
+
+    & p.done {
+        position: relative;
+        margin: 0;
+        text-align: center;
+        color: green;
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+}

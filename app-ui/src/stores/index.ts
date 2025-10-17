@@ -1,11 +1,11 @@
-import { appConfigs } from '@/config';
 import { defineStore } from 'pinia';
+import type { KeyValueMap } from '@/common/types';
+import { appConfigs } from '@/config';
 import { ReplaySubject } from 'rxjs';
 import type { AppEventSourceType } from '@/views/app.events.ts';
-import type { KeyValueMap } from '@/common/types';
+import { computed, ref } from 'vue';
 
 const maxTestRunsNumber = appConfigs.maxTestRunnerCount;
-type TestLogsHistoryType = KeyValueMap<TestLogRecord>;
 
 export type TestLogRecord = {
     stream: ReplaySubject<{ type: AppEventSourceType; data: string }>;
@@ -15,117 +15,120 @@ export type TestLogRecord = {
     eventSource: EventSource;
 };
 
-type TestLogsState = {
-    testLogsHistory: TestLogsHistoryType;
-    lastCreatedUuid: string;
-};
+type TestLogsHistoryType = KeyValueMap<TestLogRecord>;
 
-export const useTestLogsState = defineStore('test-logs', {
-    state: (): TestLogsState => ({
-        testLogsHistory: {} as TestLogsHistoryType,
-        lastCreatedUuid: '' as string,
-    }),
-    getters: {
-        getRecentTestLogs(state): TestLogRecord {
-            return state.testLogsHistory[state.lastCreatedUuid] as TestLogRecord;
-        },
+// ✅ Composition API version of useTestLogsState
+export const useTestLogsState = defineStore('test-logs', () => {
+    // --- STATE ---
+    const testLogsHistory = ref<TestLogsHistoryType>({});
+    const lastCreatedUuid = ref<string>('');
 
-        getTestLogsByUuid(state) {
-            return (uuid: string): TestLogRecord => state.testLogsHistory[uuid] as TestLogRecord;
-        },
+    // --- GETTERS (computed) ---
+    const getRecentTestLogs = computed(() => {
+        return testLogsHistory.value[lastCreatedUuid.value] as TestLogRecord;
+    });
 
-        getTestLogsHistory<T>(state: TestLogsState) {
-            return (mapperFunction: (uuid: string, creationDate: string, name: string) => T) => {
-                return Object.keys(state.testLogsHistory).map((uuid) =>
-                    mapperFunction(
-                        uuid,
-                        this.testLogsHistory[uuid]?.createdAt!.toLocaleString(),
-                        this.testLogsHistory[uuid]?.testName!,
-                    ),
-                );
-            };
-        },
+    const getTestLogsByUuid = (uuid: string): TestLogRecord =>
+        testLogsHistory.value[uuid] as TestLogRecord;
 
-        canAddAnotherTestLog(state) {
-            return (
-                Object.keys(state.testLogsHistory).length < maxTestRunsNumber ||
-                (Object.entries(state.testLogsHistory)[maxTestRunsNumber - 1][1].stream.closed ??
-                    true)
-            );
-        },
+    const getTestLogsHistory = <T>(
+        mapperFunction: (uuid: string, creationDate: string, name: string) => T,
+    ): T[] => {
+        return Object.keys(testLogsHistory.value).map((uuid) =>
+            mapperFunction(
+                uuid,
+                testLogsHistory.value[uuid]!.createdAt.toLocaleString(),
+                testLogsHistory.value[uuid]!.testName,
+            ),
+        );
+    };
 
-        getTestLogParamsByUuid(state) {
-            return (uuid: string) => state.testLogsHistory[uuid].params;
-        },
-    },
-    actions: {
-        addNewTestLogStream(uuid: string, testName: string, params: {}) {
-            this.testLogsHistory[uuid] = {
-                stream: new ReplaySubject(),
-                params: params,
-                createdAt: new Date().toLocaleString(),
-                testName: testName,
-                eventSource: null as unknown as EventSource,
-            };
-        },
-        putTestLogInHistoryWithUuid(log: { type: AppEventSourceType; data: string }, uuid: string) {
-            const testLogHistoryRecord = this.getTestLogsByUuid(uuid);
-            if (!testLogHistoryRecord) return;
-            if (testLogHistoryRecord.stream.closed) {
-                testLogHistoryRecord.stream = new ReplaySubject();
-            }
-            testLogHistoryRecord.stream.next(log);
-        },
-        testLogsForUuidComplete(uuid: string) {
-            this.testLogsHistory[uuid]?.stream.complete();
-            this.testLogsHistory[uuid]?.eventSource.close();
-        },
-        setLastCreatedUuidTo(lastCreatedUuid: string) {
-            this.lastCreatedUuid = lastCreatedUuid;
-            const keys = Object.keys(this.testLogsHistory);
-            if (keys.length === maxTestRunsNumber) {
-                const lastKnownUuid = keys[maxTestRunsNumber - 1] as string;
-                this.testLogsHistory[lastKnownUuid]?.stream.complete();
-                this.testLogsHistory[lastKnownUuid]?.stream.unsubscribe();
-                delete this.testLogsHistory[lastKnownUuid];
-            }
-        },
-        clearTestLogStream(uuid: string) {
-            const testLogHistoryRecord = this.getTestLogsByUuid(uuid);
-            if (!testLogHistoryRecord) return;
-            testLogHistoryRecord?.stream.complete();
-            testLogHistoryRecord?.stream.unsubscribe();
-            testLogHistoryRecord.stream = new ReplaySubject();
-        },
-        registerEventSource(uuid: string, eventSource: EventSource) {
-            const testLogHistoryRecord = this.getTestLogsByUuid(uuid);
-            if (!testLogHistoryRecord) return;
-            this.clearTestLogStream(uuid);
-            testLogHistoryRecord?.eventSource?.close();
-            testLogHistoryRecord.eventSource = eventSource;
-        },
-    },
-});
+    const canAddAnotherTestLog = computed(() => {
+        const entries = Object.entries(testLogsHistory.value);
+        return (
+            entries.length < maxTestRunsNumber ||
+            (entries[maxTestRunsNumber - 1]?.[1].stream.closed ?? true)
+        );
+    });
 
-//General purpose
-export const useGpState = defineStore('gp', {
-    state: () => ({}) as KeyValueMap,
-    getters: {
-        getByKeys(state) {
-            return (component: string, variableName: string = '', defaultValue: any = null) => {
-                if (!state[component]) {
-                    return defaultValue;
-                }
-                return state[component][variableName] ?? defaultValue;
-            };
-        },
-    },
-    actions: {
-        putByKey(component: string, variableName: string, value: any) {
-            if (!this[component]) {
-                this[component] = {};
-            }
-            this[component][variableName] = value;
-        },
-    },
+    const getTestLogParamsByUuid = (uuid: string) => testLogsHistory.value[uuid]?.params;
+
+    // --- ACTIONS ---
+    function addNewTestLogStream(uuid: string, testName: string, params: {}) {
+        testLogsHistory.value[uuid] = {
+            stream: new ReplaySubject(),
+            params,
+            createdAt: new Date().toLocaleString(),
+            testName,
+            eventSource: null as unknown as EventSource,
+        };
+    }
+
+    function putTestLogInHistoryWithUuid(
+        log: { type: AppEventSourceType; data: string },
+        uuid: string,
+    ) {
+        const record = getTestLogsByUuid(uuid);
+        if (!record) return;
+        if (record.stream.closed) {
+            record.stream = new ReplaySubject();
+        }
+        record.stream.next(log);
+    }
+
+    function testLogsForUuidComplete(uuid: string) {
+        const record = testLogsHistory.value[uuid];
+        record?.stream.complete();
+        record?.eventSource.close();
+    }
+
+    function setLastCreatedUuidTo(uuid: string) {
+        lastCreatedUuid.value = uuid;
+        const keys = Object.keys(testLogsHistory.value);
+        if (keys.length === maxTestRunsNumber) {
+            const lastKnownUuid = keys[maxTestRunsNumber - 1] as string;
+            const record = testLogsHistory.value[lastKnownUuid];
+            record?.stream.complete();
+            record?.stream.unsubscribe();
+            delete testLogsHistory.value[lastKnownUuid];
+        }
+    }
+
+    function clearTestLogStream(uuid: string) {
+        const record = getTestLogsByUuid(uuid);
+        if (!record) return;
+        record.stream.complete();
+        record.stream.unsubscribe();
+        record.stream = new ReplaySubject();
+    }
+
+    function registerEventSource(uuid: string, eventSource: EventSource) {
+        const record = getTestLogsByUuid(uuid);
+        if (!record) return;
+        clearTestLogStream(uuid);
+        record?.eventSource?.close();
+        record.eventSource = eventSource;
+    }
+
+    // --- RETURN EVERYTHING ---
+    return {
+        // state
+        testLogsHistory,
+        lastCreatedUuid,
+
+        // getters
+        getRecentTestLogs,
+        getTestLogsByUuid,
+        getTestLogsHistory,
+        canAddAnotherTestLog,
+        getTestLogParamsByUuid,
+
+        // actions
+        addNewTestLogStream,
+        putTestLogInHistoryWithUuid,
+        testLogsForUuidComplete,
+        setLastCreatedUuidTo,
+        clearTestLogStream,
+        registerEventSource,
+    };
 });

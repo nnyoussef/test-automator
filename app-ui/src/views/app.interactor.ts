@@ -6,7 +6,7 @@ class AppInteractor extends BaseInteractor<never, never> {
         super();
     }
 
-    public handleRunTestEvent(uuid: string) {
+    public handleRunTestEvent(uuid: string, onStreamingError: Function) {
         const url = `${this.getAppConfigs().apiProperties.url}/test/run-test?uuid=${uuid}`;
         const eventSource = new EventSource(url);
         this.getTestLogsState().registerEventSource(uuid, eventSource);

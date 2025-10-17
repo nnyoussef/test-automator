@@ -17,16 +17,17 @@ let selectedElement: HTMLElement | undefined = undefined;
 let createdElements = ref([]);
 const onItemClicked = (mv: MouseEvent) => {
     const el: HTMLElement = <HTMLElement>mv.target;
-    if (el.hasAttribute(HtmlAttributesConstants.DATA_ELEMENT_VALUE)) {
-        const value = el.getAttribute(HtmlAttributesConstants.DATA_ELEMENT_VALUE) ?? '';
-        const position = Number(el.getAttribute(HtmlAttributesConstants.DATA_POSITION));
+    const label = el.dataset.value;
+    if (label) {
+        const value = label;
+        const position = +(el.dataset.tag ?? -1);
         emits('onSelected', { value: value, label: props.rowLabel(props.items[position]) });
         let tr: HTMLElement = el;
         if (tr.tagName === 'TD') {
             tr = <HTMLElement>tr.parentElement;
         }
 
-        if (selectedElement === undefined) {
+        if (!selectedElement) {
             selectedElement = createdElements.value.find(
                 (e: HTMLElement) =>
                     e.getAttribute(HtmlAttributesConstants.DATA_SELECTED) === 'true',
@@ -53,14 +54,14 @@ const onItemClicked = (mv: MouseEvent) => {
                 v-for="(item, index) in items"
                 ref="createdElements"
                 :key="rowValue(item)"
-                :data-element-value="rowValue(item)"
+                :data-value="rowValue(item)"
                 :data-selected="rowValue(item) === selectedValue && !disableSelectRow"
-                :data-position="index"
+                :data-tag="index"
             >
                 <td
                     v-for="col in itemToRowMapper(item)"
-                    :data-position="index"
-                    :data-element-value="rowValue(item)"
+                    :data-tag="index"
+                    :data-value="rowValue(item)"
                 >
                     {{ col }}
                 </td>
@@ -68,34 +69,4 @@ const onItemClicked = (mv: MouseEvent) => {
         </tbody>
     </table>
 </template>
-<style scoped>
-.data-table {
-    border-collapse: separate;
-    border-spacing: 0;
-
-    & thead > tr {
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        background: white;
-    }
-
-    & th {
-        text-align: left;
-        border-bottom: 1px solid black;
-        padding: var(--element-gap);
-    }
-
-    & td {
-        text-align: left;
-        padding: var(--element-gap);
-        cursor: pointer;
-    }
-
-    & tr:hover > td,
-    & tr[data-selected='true'] {
-        background: rgba(128, 128, 128, 0.2);
-        transition: background 100ms ease-in-out;
-    }
-}
-</style>
+<style src="@/assets/styles/component/data-table.css" scoped />

@@ -1,5 +1,6 @@
 import type { TestMetaData } from '@/views/run-test/run-test.entity.ts';
 import type { KeyValueMap } from '@/common/types';
+import type { BaseOutputProtocole } from '@/common/base-output-protocole.ts';
 
 // Protocols for the Run Test Interactor
 interface RunTestInteractorInputProtocol {
@@ -34,10 +35,22 @@ interface RunTestInteractorInputProtocol {
      * @param path - The path for which to refresh the test configuration inputs.
      */
     refreshTestsConfigsInputsForPath(path: string): void;
+
+    /**
+     *  Sets the last selected test path.
+     * @param data - An object containing the name and path of the last selected test.
+     */
+    setLastSelectedTestPath(data: { name: string; path: string }): void;
+
+    /**
+     * Retrieves the last selected test path.
+     * @returns An object containing the name and path of the last selected test, or null if none is set.
+     */
+    getLastSelectedTestPath(): void;
 }
 
 // Protocols for the Run Test Interactor Output
-interface RunTestInteractorOutputProtocol {
+interface RunTestInteractorOutputProtocol extends BaseOutputProtocole {
     /**
      * Called when all available tests are fetched.
      * @param data - The list of available test metadata.
@@ -60,7 +73,7 @@ interface RunTestInteractorOutputProtocol {
      * Called when there is an error registering a test runner.
      * @param error - The error message.
      */
-    registerForTestRunnerFailure(error: string): void;
+    registerForTestRunnerFailure(): void;
 
     /**
      * Called when the test list is refreshed.
@@ -74,10 +87,7 @@ interface RunTestInteractorOutputProtocol {
      */
     testConfigurationForPathRefreshed(data: KeyValueMap): void;
 
-    /**
-     *
-     * */
-    externalCallError(err: any): void;
+    lastSelectedTestPathRetrieved(data: { name: string; path: string } | null): void;
 }
 
 type TestMetaDataViewModel = Readonly<TestMetaData>;

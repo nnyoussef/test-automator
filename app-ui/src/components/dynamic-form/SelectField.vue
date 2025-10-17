@@ -73,16 +73,17 @@ const toggleSelectUnSelectAll = () => {
 
 const validate = (values: string[]) => {
     const selectedOptionsCount = values.length;
-
-    if (isOptional() && selectedOptionsCount === 0) return true;
-
     const min = props.minSelection ?? 1;
     const max = props.maxSelections ?? Number.POSITIVE_INFINITY;
+
+    if (isOptional() && selectedOptionsCount === 0) return true;
+    if (isRequired() && min * max === 0) return false;
 
     return selectedOptionsCount >= min && selectedOptionsCount <= max;
 };
 
 const isOptional = () => !props.required;
+const isRequired = () => props.required;
 
 const getErrorMessage: () => string = () => {
     const minSelection = props.minSelection ?? (isOptional() ? 0 : 1);
@@ -93,13 +94,17 @@ const getErrorMessage: () => string = () => {
             `Form configuration for ${props.name} is faulty. max should not be less than min`,
         );
 
+    if (minSelection * maxSelection === 0 && isRequired())
+        throw new Error(
+            `Form configuration for ${props.name} is faulty. minSelection or maxSelection cannot be 0 for a required field`,
+        );
+
     if (minSelection === maxSelection)
         return `You are allowed to select only ${pluralize(minSelection, 'item')} `;
     if (maxSelection === Number.POSITIVE_INFINITY)
         return `You are required to select at least ${pluralize(minSelection, 'item')}`;
     if (minSelection === 0)
         return `You are required to select no more than ${pluralize(maxSelection, 'item')}`;
-
     return `You are allowed to select at least ${pluralize(minSelection, 'item')} and no more than ${pluralize(maxSelection, 'item')}`;
 };
 
@@ -115,6 +120,19 @@ const resetFieldToDefault = () => {
         message: validate(props.defaultValue) ? 'Valid' : getErrorMessage(),
     };
 };
+
+formEvent.SELECT_FIELD_CHIP_CLOSE_CLICKED.subscribe({
+    next: ({ tag, value }) => {
+        if (tag !== props.name) return;
+        const newData = model.value.data.filter((item) => item !== value);
+        const isValid = validate(newData);
+        model.value = {
+            data: newData,
+            isValid,
+            message: isValid ? 'Valid' : getErrorMessage(),
+        };
+    },
+});
 
 onMounted(() => {
     formEvent?.RESET.subscribe(resetFieldToDefault);
@@ -164,8 +182,9 @@ onMounted(() => {
                 :buttonId="`${parentId}-${name}-tooltip`"
                 buttonTextColor="var(--neutral-accent-color)"
                 icon="question"
-                buttonRole="tooltip"
-                :buttonValue="name"
+                :role="'tooltip'"
+                :value="name"
+                :tag="name"
             />
         </div>
         <transition v-on="transitionHooks">
@@ -191,7 +210,14 @@ onMounted(() => {
                 text-color="var(--error-accent-color)"
             />
             <TransitionGroup name="list">
-                <ChipView v-for="item in model.data" :key="item" :text="item" />
+                <ChipView
+                    v-for="item in model.data"
+                    :key="item"
+                    :text="item"
+                    :enableCloseButton="true"
+                    :role="'select-field-selection'"
+                    :tag="name"
+                />
             </TransitionGroup>
         </div>
     </div>

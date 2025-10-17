@@ -41,11 +41,11 @@ requestIdleCallback(() => {
                 // Disable console logging
             };
         });
-        window.alert = () => {
+        globalThis.alert = () => {
             // Disable alert dialogs
         };
-        window.confirm = () => false;
-        window.prompt = () => '';
+        globalThis.confirm = () => false;
+        globalThis.prompt = () => '';
     }
     if (import.meta.env.VITE_WEB_VITALS_ACTIVE === 'true') {
         import('web-vitals').then((vitals) => {

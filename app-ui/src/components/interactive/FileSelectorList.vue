@@ -1,158 +1,197 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import type { DirStruct, FileProps, FileSelectorProps } from '@/components/interactive';
+import { computed, ref, watch } from 'vue';
 import IconButton from '@/components/interactive/IconButton.vue';
-import type { DirStruct, FileSelectorProps } from '@/components/interactive';
-import HorizontalLayout from '@/components/layouts/HorizontalLayout.vue';
-import BreadCrumb from '@/components/interactive/BreadCrumb.vue';
-import VerticalLayout from '@/components/layouts/VerticalLayout.vue';
+import VerticalBox from '@/components/layouts/VerticalBox.vue';
 import type { FunctionMap } from '@/common/types.ts';
+import HorizontalBox from '@/components/layouts/HorizontalBox.vue';
+import BreadCrumb from '@/components/interactive/BreadCrumb.vue';
 
-const props = defineProps<FileSelectorProps>();
-
-let selectedDirSubDir = ref<string[]>([]);
-let selectedDirFiles = ref([]);
-let dirSelectionHistoryCurrentDir = ref<string[]>([]);
-const isBackwardIconVisisble = ref(false);
-
-let selectedDir: DirStruct = {};
-let dirSelectionHistory: DirStruct[] = [];
-let positionOfSelectedFile = -1;
-
+const props = withDefaults(defineProps<FileSelectorProps>(), {
+    selectPath: '',
+});
 const emits = defineEmits<{
-    itemSelected: any;
+    itemSelected: [data: (FileProps & { type: 'dir' | 'file' }) | undefined];
 }>();
 
-const onItemClickHandlers: FunctionMap<string, void> = {
+const currentWorkingDir = ref<DirStruct>();
+const currentWorkingDirFiles = computed(() => currentWorkingDir.value?.files ?? []);
+const currentWorkingDirFolders = computed(() => currentWorkingDir.value?.subDir ?? {});
+const isBackwardIconVisible = computed(() => currentWorkingDir.value?.parentDir !== undefined);
+const breadCrumbItems = computed(() => {
+    let visitedDir: DirStruct | undefined = currentWorkingDir.value;
+    const breadCrumbItems = [];
+    while (visitedDir) {
+        const label = visitedDir?.currentWorkingDirectoryName ?? '';
+        const value = visitedDir.currentWorkingDirectoryPath;
+        const iconName = label ? '' : 'home';
+
+        visitedDir = visitedDir.parentDir;
+        breadCrumbItems.push({ label, value, iconName });
+    }
+    return breadCrumbItems.reverse();
+});
+
+const itemSelectionHandlers: FunctionMap<string, void> = {
     dir(clickedFolderName: string) {
-        dirSelectionHistory.push(selectedDir);
-        dirSelectionHistoryCurrentDir.value.push(clickedFolderName);
-        selectedDir = selectedDir.subDir[clickedFolderName];
-        selectedDirSubDir.value = Object.keys(selectedDir.subDir);
-        selectedDirFiles.value = selectedDir.files.map((d) => ({ ...d, selected: false }));
-        isBackwardIconVisisble.value = true;
+        unselectCurrentlySelectedFile();
+        currentWorkingDir.value = currentWorkingDir.value?.subDir[clickedFolderName];
+        emitEvent();
     },
-    file(clickedFilePosition: string) {
-        const indexOfclickedFilePosition = +clickedFilePosition!;
-        if (selectedDirFiles.value[positionOfSelectedFile]) {
-            selectedDirFiles.value[positionOfSelectedFile].selected = false;
+    file(clickedFileName: string) {
+        let currentlySelectedFile;
+        let previouslySelectedFile: FileProps | undefined;
+
+        for (const file of currentWorkingDirFiles.value) {
+            if (file.selected) previouslySelectedFile = file;
+            if (file.name === clickedFileName) currentlySelectedFile = file;
+            if (currentlySelectedFile && previouslySelectedFile) break;
         }
-        positionOfSelectedFile = indexOfclickedFilePosition;
-        selectedDirFiles.value[indexOfclickedFilePosition].selected = true;
-        emits('itemSelected', selectedDir.files[indexOfclickedFilePosition]);
+        if (currentlySelectedFile?.path === previouslySelectedFile?.path) return;
+        currentlySelectedFile && (currentlySelectedFile.selected = true);
+        previouslySelectedFile && (previouslySelectedFile.selected = false);
+        emitEvent();
     },
+};
+
+const unselectCurrentlySelectedFile = () => {
+    const currentlySelectedFile = currentWorkingDir.value?.files?.find((file) => file.selected);
+    currentlySelectedFile && (currentlySelectedFile.selected = false);
 };
 
 const onItemClicked = (ev: MouseEvent) => {
+    ev.stopPropagation();
     const el = ev.target as HTMLElement;
 
-    const role = el.dataset.role || el.parentElement?.dataset.role;
-    const elementValue = el.dataset.elementValue || el.parentElement?.dataset.elementValue;
-
-    if (role && elementValue) {
-        onItemClickHandlers[role]?.(elementValue);
+    const role = el.dataset.role;
+    const value = el.dataset.value;
+    if (role && value) {
+        itemSelectionHandlers[role]?.(value);
     }
 };
 
-const getCurrentDirBreadCrumbProps = (): any[] => {
-    const breadCrumbItems = dirSelectionHistoryCurrentDir.value.map((d, index) => ({
-        label: d,
-        value: dirSelectionHistoryCurrentDir.value.slice(0, index + 1).join('/'),
-    }));
-    return [{ label: '', value: '', iconName: 'home' }, ...breadCrumbItems];
+const backwards = () => {
+    unselectCurrentlySelectedFile();
+    currentWorkingDir.value = currentWorkingDir.value?.parentDir ?? currentWorkingDir.value;
+    emitEvent();
 };
 
-const onDirExplorerChanged = (event: string) => {
-    const breadCrumbSelectedPathDepth = (event ? event.split('/') : []).length;
-    const backwardCount = dirSelectionHistoryCurrentDir.value.length - breadCrumbSelectedPathDepth;
-    if (backwardCount <= 0) return;
-    requestIdleCallback(() => backwards(backwardCount));
-};
-
-const cleanDir = (): any => ({
-    files: [],
-    subDir: {},
-});
-
-const backwards = (count: number) => {
-    let previous;
-    for (let i = 0; i < count; i++) {
-        dirSelectionHistoryCurrentDir.value.pop();
-        previous = dirSelectionHistory.pop();
+const onDirExplorerChanged = (path: string) => {
+    unselectCurrentlySelectedFile();
+    let backwardWorkingDir = currentWorkingDir.value;
+    while (backwardWorkingDir && backwardWorkingDir.currentWorkingDirectoryPath !== path) {
+        backwardWorkingDir = backwardWorkingDir.parentDir;
     }
-    if (!previous) return;
-    selectedDir = previous;
-    selectedDirSubDir.value = Object.keys(selectedDir.subDir);
-    selectedDirFiles.value = selectedDir.files.map((d) => ({ ...d, selected: false }));
-    if (dirSelectionHistory.length === 0) isBackwardIconVisisble.value = false;
+    currentWorkingDir.value = backwardWorkingDir ?? currentWorkingDir.value;
+    emitEvent();
 };
 
-let dir: DirStruct = {};
+const buildDirStruct = (files: readonly FileProps[]): DirStruct => {
+    const root: DirStruct = {
+        files: [],
+        subDir: {},
+        parentDir: undefined,
+        currentWorkingDirectoryPath: '',
+        currentWorkingDirectoryName: '',
+    };
 
-const updateDirTree = (files: Array<Readonly<{ name: string; location: string }>>) => {
-    dir = {};
-    dirSelectionHistory = [];
-    dirSelectionHistoryCurrentDir.value = [];
-    isBackwardIconVisisble.value = false;
-    files?.forEach(({ name, location }) => {
-        const parts = location.split(/[\/\\]/).slice(1, -1);
-        let subDir: DirStruct = dir;
-        let subDirFiles: any[] = [];
+    let selectedDir: DirStruct = root;
+    const searchPath = props.selectPath.replace(/[\\/]+$/, '');
+    for (const file of files) {
+        const parts = file.path.replace(/[\\/]+$/, '').split(/[\\/]+/);
+        let currentDir = root;
+        let pathSoFar = '';
 
-        for (const p of parts) {
-            if (!subDir[p]) subDir[p] = cleanDir();
-            subDirFiles = subDir[p].files;
-            subDir = subDir[p].subDir;
+        for (let i = 0; i < parts.length - 1; i++) {
+            const folder = parts[i] as string; //we are sure that the folder name is not empty
+            pathSoFar = pathSoFar ? `${pathSoFar}\\${folder}` : folder;
+
+            if (!currentDir.subDir[folder]) {
+                currentDir.subDir[folder] = {
+                    files: [],
+                    subDir: {},
+                    parentDir: currentDir,
+                    currentWorkingDirectoryPath: pathSoFar,
+                    currentWorkingDirectoryName: folder,
+                };
+            }
+
+            currentDir = currentDir.subDir[folder];
+
+            // Check if this folder matches the selectedPath
+            if (searchPath === pathSoFar) {
+                selectedDir = currentDir;
+            }
         }
-        subDirFiles.push({ name, path: location });
-    });
 
-    const rootDir = Object.keys(dir)[0];
-    selectedDir = dir[rootDir];
-    selectedDirSubDir.value = Object.keys(selectedDir.subDir);
-    selectedDirFiles.value = selectedDir.files.map((d: any) => ({ ...d, selected: false }));
+        currentDir.files.push({ ...file, selected: searchPath === file.path });
+        if (searchPath === file.path) {
+            selectedDir = currentDir;
+        }
+    }
+    return selectedDir;
+};
+
+const emitEvent = () => {
+    if (!currentWorkingDir.value) return;
+    const currentWorkingDirValue = currentWorkingDir.value;
+    const selectedFile = currentWorkingDirValue.files.find((file) => file.selected);
+
+    let directory = currentWorkingDirValue?.currentWorkingDirectoryPath;
+    let name = directory;
+    let path = directory;
+    let type: 'dir' | 'file' = 'dir';
+    let selected = false;
+
+    if (selectedFile) {
+        name = selectedFile.name;
+        path = selectedFile.path;
+        selected = selectedFile.selected;
+        type = 'file';
+    }
+
+    emits('itemSelected', { name, path, selected, type, directory });
 };
 
 watch(
     () => props.files,
-    (value) => updateDirTree(value),
+    (newFiles) => {
+        currentWorkingDir.value = buildDirStruct(newFiles);
+        emitEvent();
+    },
 );
 </script>
 <template>
-    <div style="margin-left: var(--element-gap)">
-        <div style="cursor: pointer; margin-top: var(--element-gap); gap: 8px" class="unselectable">
-            <HorizontalLayout>
+    <div class="file-selector">
+        <HorizontalBox class="header">
+            <IconButton
+                id="back_button"
+                icon="back"
+                :role="'backwards'"
+                @click="backwards()"
+                :button-text-color="isBackwardIconVisible ? 'var(--primary-color)' : 'gray'"
+                :disabled="!isBackwardIconVisible"
+            />
+            <BreadCrumb :items="breadCrumbItems" @onItemClicked="onDirExplorerChanged" />
+        </HorizontalBox>
+        <div class="panel" @click="onItemClicked">
+            <VerticalBox style="gap: var(--element-gap)">
                 <IconButton
-                    id="back_button"
-                    icon="back"
-                    button-role="backwards"
-                    @click="backwards(1)"
-                    :button-text-color="isBackwardIconVisisble ? 'var(--primary-color)' : 'gray'"
-                    :disabled="!isBackwardIconVisisble"
-                />
-                <BreadCrumb
-                    :items="getCurrentDirBreadCrumbProps()"
-                    @onItemClicked="onDirExplorerChanged"
-                />
-            </HorizontalLayout>
-        </div>
-        <div style="display: contents" @click="onItemClicked">
-            <VerticalLayout style="gap: var(--element-gap)">
-                <IconButton
-                    v-for="item in selectedDirSubDir"
-                    id="folder"
+                    v-for="index in currentWorkingDirFolders"
+                    :id="index.currentWorkingDirectoryName"
                     icon="folder"
-                    :button-label="item"
+                    :button-label="index.currentWorkingDirectoryName"
                     button-text-color="black"
                     icon-color="var(--primary-color)"
-                    button-role="dir"
-                    :button-value="item"
+                    :role="'dir'"
+                    :value="index.currentWorkingDirectoryName"
                     :disable-hover-css="true"
                     class="unselectable item"
                 />
-            </VerticalLayout>
-            <VerticalLayout>
+            </VerticalBox>
+            <VerticalBox>
                 <IconButton
-                    v-for="(item, index) in selectedDirFiles"
+                    v-for="item in currentWorkingDirFiles"
                     :key="item.name"
                     :data-selected="item.selected"
                     id="start"
@@ -161,30 +200,12 @@ watch(
                     :button-label="item.name"
                     button-text-color="black"
                     icon-color="green"
-                    button-role="file"
-                    :button-value="index"
+                    :role="'file'"
+                    :value="item.name"
                     :disable-hover-css="true"
                 />
-            </VerticalLayout>
+            </VerticalBox>
         </div>
     </div>
 </template>
-<style scoped>
-.item {
-    cursor: pointer;
-    align-items: center;
-    transition: background 100ms ease-out;
-    gap: 8px;
-    margin-top: var(--element-gap);
-    height: 35px;
-
-    &:hover {
-        background: rgba(128, 128, 128, 0.2);
-    }
-}
-
-.item[data-selected='true'] {
-    background: rgba(128, 128, 128, 0.2);
-    transition: background 100ms ease-out;
-}
-</style>
+<style src="@/assets/styles/component/file-selector.css" scoped />

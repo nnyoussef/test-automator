@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { NoteCardViewProps } from '@/components/containers/index.ts';
-import HorizontalLayout from '@/components/layouts/HorizontalLayout.vue';
+import HorizontalBox from '@/components/layouts/HorizontalBox.vue';
 import { computed } from 'vue';
 import IconContainer from '@/components/icons/IconContainer.vue';
 
@@ -11,13 +11,13 @@ const icon = computed(() => props.type);
 </script>
 
 <template>
-    <HorizontalLayout class="notecard" :class="icon" style="gap: 1rem">
-        <IconContainer :icon="icon" fill="var(--accent-color)" />
+    <HorizontalBox class="notecard" :class="icon" style="gap: 1rem">
+        <IconContainer class="icon" :icon="icon" fill="var(--accent-color)" />
         <p class="note zero-margin" :class="noteClass">{{ note }}</p>
         <p class="note zero-margin" v-if="$slots.default">
             <slot />
         </p>
-    </HorizontalLayout>
+    </HorizontalBox>
 </template>
 
 <style scoped>
@@ -33,6 +33,12 @@ const icon = computed(() => props.type);
     padding-inline: 0.5rem;
     padding-inline-start: 1rem;
     transition: background-color 650ms ease;
+    line-height: 1;
+
+    & .icon {
+        line-height: 1;
+    }
+
     & .note {
         align-self: anchor-center;
     }

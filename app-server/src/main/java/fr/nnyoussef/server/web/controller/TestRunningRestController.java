@@ -1,6 +1,6 @@
 package fr.nnyoussef.server.web.controller;
 
-import fr.nnyoussef.server.infrastructure.service.functions.BaseFunction;
+import fr.nnyoussef.server.infrastructure.functions.BaseFunction;
 import fr.nnyoussef.server.web.response.FeatureRunnerRequestBody;
 import fr.nnyoussef.server.web.response.TestRegistrationUuidTokenResponse;
 import org.springframework.beans.factory.BeanFactory;
@@ -46,7 +46,6 @@ public final class TestRunningRestController extends BaseFunction {
                 .map(getTestRunnerInputDataFunction())
                 .cast(FeatureRunnerRequestBody.class)
                 .flatMapMany(getKarateFeatureRunnerFunction())
-                .contextWrite(Context.of("id", uuid))
-                .subscribeOn(parallel());
+                .contextWrite(Context.of("id", uuid));
     }
 }

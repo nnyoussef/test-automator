@@ -1,114 +1,123 @@
 import { map } from 'rxjs';
 import { testRunRepository } from '@/rest-client-repo/test-run-repository';
+import { testInfoRepository } from '@/rest-client-repo/test-info-repository';
 import { toRaw } from 'vue';
 import { createRunTestEntity, type TestEntity } from './run-test.entity.ts';
 import { BaseInteractor } from '@/common/base-interactor';
-import { testInfoRepository } from '@/rest-client-repo/test-info-repository';
-import {
-    type RunTestInteractorInputProtocol,
-    type RunTestInteractorOutputProtocol,
+import type {
+    RunTestInteractorInputProtocol,
+    RunTestInteractorOutputProtocol,
 } from '@/views/run-test/run-test.protocol.ts';
 import type { KeyValueMap } from '@/common/types';
 
 /**
- * Interactor for test management.
+ * Interactor responsible for managing test execution and related metadata.
  */
 class RunTestInteractor
     extends BaseInteractor<RunTestInteractorOutputProtocol, TestEntity>
     implements RunTestInteractorInputProtocol
 {
-    private static readonly AVAILABLE_TEST = 'availableTests';
-    private static readonly AVAILABLE_TEST_CONFIGS = 'availableTestsConfigs';
+    private static readonly AVAILABLE_TESTS_KEY = 'availableTests';
+    private static readonly AVAILABLE_TEST_CONFIGS_KEY = 'availableTestsConfigs';
+    private static readonly LAST_SELECTED_TEST_PATH_KEY = 'lastSelectedTestPath';
 
     constructor() {
         super();
         this.entity = this.initEntity();
     }
 
-    // --- Public Methods ---
-
-    /** Gets all available tests. */
-    public getAllTestAvailable(isRefreshAction: boolean = false): void {
+    /** Fetches all available tests. */
+    public getAllTestAvailable(isRefreshAction = false): void {
         if (this.entity.hasTests()) {
             this.outputProtocol.allTestAvailable(this.entity.getAvailableTests());
             return;
         }
+
         testInfoRepository
             .fetchAllAvailableTests(this.abortController)
-            .pipe(map((s) => s.data))
+            .pipe(map((response) => response.data))
             .subscribe({
-                next: (data) => {
-                    this.entity.setAvailableTests(data);
-                    this.saveToGpStateStore(RunTestInteractor.AVAILABLE_TEST, data);
+                next: (tests) => {
+                    this.entity.setAvailableTests(tests);
+                    this.saveToGpStateStore(RunTestInteractor.AVAILABLE_TESTS_KEY, tests);
+
                     const action = isRefreshAction
                         ? this.outputProtocol.testListRefreshed
                         : this.outputProtocol.allTestAvailable;
                     action(this.entity.getAvailableTests());
+                    this.outputProtocol.eventReporter('Test fetched successfully', 'success');
                 },
-                error: this.outputProtocol.externalCallError,
+                error: (error: Error) => {
+                    this.outputProtocol.eventReporter(error.message, 'error');
+                },
             });
     }
 
-    /** Gets specific details for a test. */
-    public getTestSpecificDetails(path: string, isRefreshAction: boolean = false): void {
+    /** Fetches test configuration for a given test path. */
+    public getTestSpecificDetails(path: string, isRefreshAction = false): void {
         if (this.entity.hasTestConfigAt(path)) {
             const config = this.entity.getTestConfigAt(path);
-            this.outputProtocol?.testSpecificDetails(config);
+            if (config) this.outputProtocol.testSpecificDetails(config);
             return;
         }
+
         testInfoRepository
             .fetchTestSpecificDetails(path, this.abortController)
             .pipe(map((response) => response.data))
             .subscribe({
-                next: (data) => {
-                    this.entity.setTestConfigsWith(path, data);
+                next: (configData) => {
+                    this.entity.setTestConfigsWith(path, configData);
+
                     const config = this.entity.getTestConfigAt(path);
                     const action = isRefreshAction
                         ? this.outputProtocol.testConfigurationForPathRefreshed
                         : this.outputProtocol.testSpecificDetails;
                     if (config) {
                         action(config);
+                        this.outputProtocol.eventReporter(
+                            'Test configuration fetched successfully',
+                            'success',
+                        );
                     }
                 },
-                error: this.outputProtocol.externalCallError,
+                error: (error: Error) => this.outputProtocol.eventReporter(error.message, 'error'),
             });
     }
 
-    /** Registers for a test runner. */
+    /** Registers a new test run with the provided parameters. */
     public registerForTestRunner(name: string, path: string, form: KeyValueMap): void {
-        const pathComposition = path.split(/[/\\]/);
-        pathComposition.pop();
-        pathComposition.push(name);
-
         if (!this.isTestRunnerParamsValid(name, path, form)) {
             this.outputProtocol.registerForTestRunnerFailure('Invalid parameters');
             return;
         }
 
         if (!this.getTestLogsState().canAddAnotherTestLog) {
-            this.outputProtocol.registerForTestRunnerFailure(
-                'Limit reached, cannot start another test',
+            this.outputProtocol.registerForTestRunnerFailure();
+            this.outputProtocol.eventReporter(
+                'Limit reached, cannot start another test run',
+                'error',
             );
             return;
         }
-        const testParams = this.runTestDataFormatter(form);
+
+        const testParams = this.formatTestParams(form);
+        const composedPath = this.composeTestPath(name, path);
 
         testRunRepository
             .registerForTestRunner({ path, testParams }, this.abortController)
-            .pipe(map((data) => data.data.token))
+            .pipe(map((response) => response.data.token))
             .subscribe({
                 next: (uuid) => {
-                    this.getTestLogsState().addNewTestLogStream(
-                        uuid,
-                        pathComposition.join('/'),
-                        form,
+                    this.getTestLogsState().addNewTestLogStream(uuid, composedPath, form);
+                    this.outputProtocol.registerForTestRunnerSuccess(uuid);
+                    this.outputProtocol.eventReporter(
+                        'Test run registered successfully and will be executed in background',
+                        'info',
                     );
-                    this.outputProtocol?.registerForTestRunnerSuccess(uuid);
                 },
                 error: (err) => {
-                    this.outputProtocol?.registerForTestRunnerFailure(
-                        err?.message ?? 'Error while registering test runner',
-                    );
+                    this.outputProtocol.registerForTestRunnerFailure();
+                    this.outputProtocol.eventReporter(err.message, 'error');
                 },
             });
     }
@@ -119,30 +128,55 @@ class RunTestInteractor
         this.getAllTestAvailable(true);
     }
 
-    /** Refreshes test configs for a given path. */
+    /** Refreshes test configuration for a given path. */
     public refreshTestsConfigsInputsForPath(path: string): void {
         this.entity.clearTestConfigsWith(path);
         this.getTestSpecificDetails(path, true);
     }
 
-    /** Cleans up state and aborts ongoing calls. */
+    /** Saves the last selected test path. */
+    public setLastSelectedTestPath(data: { name: string; path: string }): void {
+        this.entity.setLastSelectedTestPath(data);
+    }
+
+    /** Retrieves the last selected test path. */
+    public getLastSelectedTestPath(): void {
+        this.outputProtocol.lastSelectedTestPathRetrieved(this.entity.getLastSelectedTestPath());
+    }
+
+    /** Cleans up persistent state and aborts any ongoing operations. */
     public destroy(): void {
         this.saveToGpStateStore(
-            RunTestInteractor.AVAILABLE_TEST_CONFIGS,
+            RunTestInteractor.AVAILABLE_TEST_CONFIGS_KEY,
             this.entity.getAvailableTestsConfigs(),
+        );
+        this.saveToGpStateStore(
+            RunTestInteractor.LAST_SELECTED_TEST_PATH_KEY,
+            this.entity.getLastSelectedTestPath(),
         );
         this.abortController.abort('Run Test View destroyed');
     }
 
     // --- Protected Methods ---
 
-    /** Initializes the test entity. */
     protected initEntity(): TestEntity {
         const entity = createRunTestEntity();
-        entity.setAvailableTests(this.getFromGpStateStore(RunTestInteractor.AVAILABLE_TEST, []));
-        entity.setAvailableTestsConfigs(
-            this.getFromGpStateStore(RunTestInteractor.AVAILABLE_TEST_CONFIGS, {}),
+
+        entity.setAvailableTests(
+            this.getFromGpStateStore(RunTestInteractor.AVAILABLE_TESTS_KEY, []),
         );
+
+        entity.setAvailableTestsConfigs(
+            this.getFromGpStateStore(RunTestInteractor.AVAILABLE_TEST_CONFIGS_KEY, {}),
+        );
+
+        entity.setLastSelectedTestPath(
+            this.getFromGpStateStore(RunTestInteractor.LAST_SELECTED_TEST_PATH_KEY, {
+                name: '',
+                path: '',
+            }),
+        );
+
         return entity;
     }
 
@@ -152,20 +186,29 @@ class RunTestInteractor
 
     // --- Private Methods ---
 
-    /** Validates test runner parameters. */
+    /** Checks whether parameters for a test runner are valid. */
     private isTestRunnerParamsValid(name: string, path: string, form: KeyValueMap): boolean {
-        return Boolean(name && path && form);
+        return !!(name && path && Object.keys(form).length);
     }
 
-    /** Formats test data. */
-    private runTestDataFormatter(form: KeyValueMap): KeyValueMap<string> {
-        const testParams: KeyValueMap<string> = {};
-        Object.entries(form).forEach(([key, value]) => {
-            testParams[key] = toRaw(toRaw(value).data);
-        });
-        return testParams;
+    /** Formats raw form data into test parameters. */
+    private formatTestParams(form: KeyValueMap): KeyValueMap<string> {
+        const params: KeyValueMap<string> = {};
+        for (const [key, value] of Object.entries(form)) {
+            params[key] = toRaw(toRaw(value).data);
+        }
+        return params;
+    }
+
+    /** Builds the full test path with the test name appended. */
+    private composeTestPath(name: string, path: string): string {
+        const segments = path.split(/[/\\]/);
+        segments.pop();
+        segments.push(name);
+        return segments.join('/');
     }
 }
 
-export const createRunTestInputProtocol: () => RunTestInteractorInputProtocol &
-    BaseInteractor<RunTestInteractorOutputProtocol, TestEntity> = () => new RunTestInteractor();
+/** Factory function to create a fully wired RunTestInteractor instance. */
+export const createRunTestInputProtocol = (): RunTestInteractorInputProtocol &
+    BaseInteractor<RunTestInteractorOutputProtocol, TestEntity> => new RunTestInteractor();

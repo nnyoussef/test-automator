@@ -1,20 +1,24 @@
 <script setup lang="ts">
-import VerticalLayout from '@/components/layouts/VerticalLayout.vue';
+import VerticalBox from '@/components/layouts/VerticalBox.vue';
 import type { TooltipViewProps } from '@/components/containers/index.ts';
+import IconContainer from '@/components/icons/IconContainer.vue';
 
 defineProps<TooltipViewProps>();
 </script>
 
 <template>
     <Transition name="fade">
-        <VerticalLayout
+        <VerticalBox
             :centered-items="true"
             v-if="tooltipShow"
             :style="{ positionAnchor: anchorName }"
             class="tooltip"
         >
-            <slot />
-        </VerticalLayout>
+            <IconContainer height="4px" class="marker" icon="arrowup" />
+            <div class="content">
+                <slot />
+            </div>
+        </VerticalBox>
     </Transition>
 </template>
 
@@ -25,12 +29,17 @@ defineProps<TooltipViewProps>();
     justify-self: anchor-center;
     margin-top: 0;
     max-width: 100px;
-    background: var(--neutral-color);
-    border-radius: 5px;
-    white-space: normal;
-    overflow-wrap: anywhere;
-    padding: 1rem;
-    border: 1px solid var(--neutral-accent-color);
-    box-shadow: var(--box-shadow);
+
+    & .marker {
+        height: 4px;
+    }
+    & .content {
+        background-color: rgb(50, 50, 50);
+        border-radius: 5px;
+        padding: 0.5rem;
+        color: white;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
 }
 </style>

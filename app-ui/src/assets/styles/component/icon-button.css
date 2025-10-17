@@ -1,0 +1,44 @@
+.icon-button {
+    font-weight: bold;
+    cursor: pointer;
+    --color: none;
+    background: none;
+    color: var(--color);
+    border-radius: 8px;
+    border: 1px solid transparent;
+    contain: content;
+    line-height: 1;
+    &:hover:not(.no-hover) {
+        box-shadow: var(--box-shadow);
+        border: 1px solid var(--color);
+    }
+}
+
+.button {
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    background: white;
+    color: var(--primary-color);
+    font-size: 12pt;
+    border: 1px solid var(--primary-color);
+    padding: 8px;
+    width: fit-content;
+    margin: var(--element-gap) 0;
+    contain: content;
+
+    &:hover {
+        box-shadow: var(--box-shadow);
+    }
+
+    &:active {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    &:not(:first-child) {
+        margin-left: var(--element-gap);
+    }
+}
+
+

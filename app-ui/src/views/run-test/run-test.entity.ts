@@ -1,8 +1,9 @@
 import type { KeyValueMap } from '@/common/types';
 
 type TestMetaData = {
+    directory: string;
     name: string;
-    location: string;
+    path: string;
 };
 
 interface TestEntity {
@@ -25,11 +26,22 @@ interface TestEntity {
     hasTests(): boolean;
 
     hasTestConfigAt(path: string): boolean;
+
+    setLastSelectedTestPath(selectedTestPath: { name: string; path: string }): void;
+
+    getLastSelectedTestPath(): { name: string; path: string };
 }
 
 const createRunTestEntity = (): TestEntity => {
     let availableTests: TestMetaData[] = [];
     let availableTestsConfigs: KeyValueMap = {};
+    let lastSelectedTestPath: { name: string; path: string } = { name: '', path: '' };
+
+    const setLastSelectedTestPath = (selectedTestPath: { name: string; path: string }) => {
+        lastSelectedTestPath = { ...selectedTestPath };
+    };
+
+    const getLastSelectedTestPath = () => ({ ...lastSelectedTestPath });
 
     const getAvailableTests = () => [...availableTests];
     const getAvailableTestsConfigs = () => ({ ...availableTestsConfigs });
@@ -72,6 +84,8 @@ const createRunTestEntity = (): TestEntity => {
         hasTests,
         hasTestConfigAt,
         reset,
+        setLastSelectedTestPath,
+        getLastSelectedTestPath,
     };
 };
 

@@ -18,28 +18,31 @@ class TestLogsInteractor
     extends BaseInteractor<TestLogsOutputProtocol, TestLogEntity>
     implements TestLogsInputProtocol
 {
-    private static readonly SELECTED_UUID = 'selectedUuid';
+    private static readonly SELECTED_UUID_KEY = 'selectedUuid';
 
     constructor(private readonly forcedUuid: Optional<string>) {
         super();
         this.entity = this.initEntity(forcedUuid);
     }
 
-    startListeningToTestLogs(preProcessing: Function, uuid?: string): void {
-        let isPreProcessed = false;
-        const wrappedHandler = (events: TestLogsEvent[]) => {
-            if (!isPreProcessed) {
+    startListeningToTestLogs(preProcessing: () => void, uuid?: string): void {
+        let hasPreProcessed = false;
+
+        const handleEvents = (events: TestLogsEvent[]) => {
+            if (!hasPreProcessed) {
                 preProcessing();
-                isPreProcessed = true;
+                hasPreProcessed = true;
             }
             this.outputProtocol?.onTestLogStreamReceived(events);
         };
+
         const logStream = uuid
             ? this.getTestLogsState().getTestLogsByUuid(uuid)?.stream
             : this.getTestLogsState().getRecentTestLogs.stream;
+
         this.entity.testLogsListener = logStream
-            .pipe(bufferCount(this.getAppConfigs().maxElementToRenderPerRenderingCycle))
-            .subscribe(wrappedHandler);
+            ?.pipe(bufferCount(this.getAppConfigs().maxElementToRenderPerRenderingCycle))
+            .subscribe(handleEvents);
     }
 
     checkIfStreamIsFromServer(uuid: string): void {
@@ -54,47 +57,54 @@ class TestLogsInteractor
     }
 
     fetchTestLogsByUuid(uuid: string): void {
-        this.outputProtocol?.onTestLogFetched(this.getTestLogsState().getTestLogsByUuid(uuid));
+        const testLogs = this.getTestLogsState().getTestLogsByUuid(uuid);
+        this.outputProtocol?.onTestLogFetched(testLogs);
     }
 
     fetchTestLogsHistory(): void {
-        const mapper = (uuid: string, creationDate: string, testName: string) =>
-            ({
-                label: testName,
-                creationDate,
-                value: uuid,
-            }) as TestLogHistoryViewModel;
+        const mapToViewModel = (
+            uuid: string,
+            creationDate: string,
+            testName: string,
+        ): TestLogHistoryViewModel => ({
+            label: testName,
+            creationDate,
+            value: uuid,
+        });
 
-        const testRuns = this.getTestLogsState()
-            .getTestLogsHistory(mapper)
-            .reverse() as TestLogHistoryViewModel[];
-
-        this.outputProtocol?.onTestLogsHistoryFetched(testRuns);
+        const history = this.getTestLogsState().getTestLogsHistory(mapToViewModel).reverse();
+        this.outputProtocol?.onTestLogsHistoryFetched(history);
     }
 
     fetchTestLogParams(uuid: string): void {
-        this.outputProtocol?.onTestLogParamsFetched(
-            this.getTestLogsState().getTestLogParamsByUuid(uuid),
-        );
+        const params = this.getTestLogsState().getTestLogParamsByUuid(uuid);
+        this.outputProtocol?.onTestLogParamsFetched(params);
     }
 
     fetchSelectedUuid(): void {
-        this.outputProtocol?.onSelectedUuidFetched(this.entity.selectedUuid ?? 'No UUID Found');
+        const selected = this.entity.selectedUuid ?? 'No UUID Found';
+        this.outputProtocol?.onSelectedUuidFetched(selected);
     }
 
-    setUuidAsSelected(selectedTestUuid: string): void {
-        this.entity.selectedUuid = selectedTestUuid;
-        this.saveToGpStateStore(TestLogsInteractor.SELECTED_UUID, selectedTestUuid);
+    setUuidAsSelected(selectedUuid: string): void {
+        this.entity.selectedUuid = selectedUuid;
+        this.saveToGpStateStore(TestLogsInteractor.SELECTED_UUID_KEY, selectedUuid);
     }
 
     protected initEntity(forcedUuid: Optional<string>): TestLogEntity {
-        const testLogsEntity = createTestLogEntity();
-        testLogsEntity.selectedUuid =
-            forcedUuid ?? this.getFromGpStateStore(TestLogsInteractor.SELECTED_UUID, undefined);
+        const entity = createTestLogEntity();
+        const persistedUuid = this.getFromGpStateStore<string | undefined>(
+            TestLogsInteractor.SELECTED_UUID_KEY,
+            undefined,
+        );
+
+        entity.selectedUuid = forcedUuid ?? persistedUuid;
+
         if (forcedUuid) {
-            this.saveToGpStateStore(TestLogsInteractor.SELECTED_UUID, forcedUuid);
+            this.saveToGpStateStore(TestLogsInteractor.SELECTED_UUID_KEY, forcedUuid);
         }
-        return testLogsEntity;
+
+        return entity;
     }
 
     protected getComponentName(): string {
@@ -107,7 +117,8 @@ class TestLogsInteractor
 }
 
 type InteractorType = TestLogsInputProtocol & BaseInteractor<TestLogsOutputProtocol, TestLogEntity>;
-const useTestLogsInteractor = (forcedUuid: Optional<string>) =>
+
+const useTestLogsInteractor = (forcedUuid: Optional<string>): InteractorType =>
     new TestLogsInteractor(forcedUuid) as InteractorType;
 
 export { type TestLogsEvent, useTestLogsInteractor };

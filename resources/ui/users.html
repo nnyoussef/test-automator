@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Users & Posts — Tailwind</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <style>
+        .chip {
+            display: inline-block;
+            padding: 0.25rem 0.6rem;
+            border-radius: 9999px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .content-container {
+            overflow: hidden;
+            height: 0;
+            transition: height 0.3s ease;
+        }
+
+        .collapsible .icon {
+            transition: transform 0.3s ease;
+            display: inline-block;
+        }
+
+        .slide-down {
+            transform: translateY(-10px);
+            opacity: 0;
+            animation: slideDown .6s ease forwards;
+        }
+
+        @keyframes slideDown {
+            to {
+                transform: translateY(0);
+                opacity: 1
+            }
+        }
+
+        .fade-up {
+            transform: translateY(16px);
+            opacity: 0;
+            animation: fadeUp .7s ease forwards;
+        }
+
+        @keyframes fadeUp {
+            to {
+                transform: translateY(0);
+                opacity: 1
+            }
+        }
+
+        .modal {
+            display: none;
+        }
+
+        .modal.show {
+            display: flex;
+            animation: modalFadeIn 0.3s ease forwards;
+        }
+
+        .modal-content {
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .modal.show .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="bg-teal-50 text-slate-800 antialiased">
+
+<header class="sticky top-0 bg-teal-50 z-30 slide-down">
+    <div class="max-w-4xl mx-auto px-4 py-4">
+        <h1 class="text-2xl font-semibold text-teal-600 flex items-center gap-3">
+            <i class="fa-solid fa-users"></i>
+            Users & Posts
+        </h1>
+    </div>
+</header>
+
+<main class="max-w-4xl mx-auto p-6 fade-up">
+    <section class="bg-white rounded-2xl shadow-md p-6">
+
+        <!-- Search Panel -->
+        <div class="mb-4">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div class="flex-1 flex items-center gap-3">
+                    <input id="searchInput" type="text" placeholder="Search..."
+                           class="w-full sm:w-96 px-4 py-2 rounded-lg border-2 border-teal-300 outline-none focus:ring-2 focus:ring-teal-200"/>
+                    <button id="collapseAllBtn" onclick="toggleAll()"
+                            class="inline-flex items-center gap-2 bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg shadow">
+                        <i class="fa-solid fa-expand"></i>
+                        <span>Expand All</span>
+                    </button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="openContextModal()"
+                            class="inline-flex items-center gap-2 bg-white border border-teal-200 text-teal-600 px-3 py-2 rounded-lg hover:bg-teal-50">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span>Show Test Context</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-3 fields-radio grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm text-slate-600">
+                <label class="flex items-center gap-2"><input type="radio" name="searchField" value="name" checked> Name</label>
+                <label class="flex items-center gap-2"><input type="radio" name="searchField" value="email">
+                    Email</label>
+                <label class="flex items-center gap-2"><input type="radio" name="searchField" value="username"> Username</label>
+                <label class="flex items-center gap-2"><input type="radio" name="searchField" value="phone">
+                    Phone</label>
+                <label class="flex items-center gap-2"><input type="radio" name="searchField" value="website">
+                    Website</label>
+                <label class="flex items-center gap-2"><input type="radio" name="searchField" value="company">
+                    Company</label>
+                <label class="flex items-center gap-2"><input type="radio" name="searchField" value="address">
+                    Address</label>
+                <label class="flex items-center gap-2"><input type="radio" name="searchField" value="postTitle"> Post
+                    Title</label>
+                <label class="flex items-center gap-2"><input type="radio" name="searchField" value="postBody"> Post
+                    Body</label>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="overflow-hidden rounded-xl border border-teal-100">
+            <table class="min-w-full divide-y divide-teal-100">
+                <thead class="bg-teal-500">
+                <tr>
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-white">Post ID</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-white">Title</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-white">Biography</th>
+                </tr>
+                </thead>
+                <tbody class="bg-white">
+                <th:block th:each="entry : ${posts}">
+                    <tr class="collapsible bg-teal-50 hover:bg-teal-100 cursor-pointer" onclick="toggleCollapse(this)">
+                        <td colspan="3" class="px-4 py-3">
+                            <i class="fa-solid fa-angle-right icon text-teal-500 mr-3"></i>
+                            <i class="fa-solid fa-user text-teal-600 mr-2"></i>
+                            <span class="font-medium text-slate-700" th:text="${users[entry.key][0].name}"></span>
+                            <button class="details-btn inline-flex items-center gap-2 ml-4 float-right bg-teal-500 hover:bg-teal-600 text-white px-3 py-1 rounded"
+                                    th:attr="data-user-id=${entry.key}"
+                                    onclick="event.stopPropagation(); openModalFromButton(this)">
+                                <i class="fa-solid fa-eye"></i> Details
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" class="p-0 border-0">
+                            <div class="content-container px-4 py-3 overflow-hidden transition-all duration-300">
+                                <th:block th:each="post : ${entry.value}">
+                                    <div class="content-row flex items-start gap-3 py-3 border-b border-teal-100 hover:bg-teal-50">
+                                        <div class="w-1/12 text-sm text-slate-600" th:text="${post.id}"></div>
+                                        <div class="w-4/12 font-semibold text-slate-700" th:text="${post.title}"></div>
+                                        <div class="w-7/12 text-sm text-slate-600" th:text="${post.body}"></div>
+                                    </div>
+                                </th:block>
+                            </div>
+                        </td>
+                    </tr>
+                </th:block>
+                </tbody>
+            </table>
+        </div>
+
+    </section>
+</main>
+
+<!-- User Modal -->
+<div id="userModal" class="modal fixed inset-0 z-50 items-center justify-center bg-black/40">
+    <div class="modal-content bg-white rounded-2xl shadow-lg max-w-md w-full p-6 mx-4">
+        <div class="flex items-start justify-between">
+            <h3 class="text-xl font-semibold text-teal-600"><i class="fa-solid fa-user mr-2"></i><span
+                    id="modalUserName"></span></h3>
+            <button class="text-slate-600" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="mt-4 grid gap-2">
+            <p class="text-sm"><i class="fa-solid fa-envelope mr-2 text-teal-400"></i><strong>Email:</strong> <span
+                    id="modalEmail"></span></p>
+            <p class="text-sm"><i class="fa-solid fa-at mr-2 text-teal-400"></i><strong>Username:</strong> <span
+                    id="modalUsername"></span></p>
+            <p class="text-sm"><i class="fa-solid fa-phone mr-2 text-teal-400"></i><strong>Phone:</strong> <span
+                    id="modalPhone"></span></p>
+            <p class="text-sm"><i class="fa-solid fa-globe mr-2 text-teal-400"></i><strong>Website:</strong> <span
+                    id="modalWebsite"></span></p>
+            <p class="text-sm"><i class="fa-solid fa-building mr-2 text-teal-400"></i><strong>Company:</strong> <span
+                    id="modalCompany"></span></p>
+            <p class="text-sm"><i class="fa-solid fa-location-dot mr-2 text-teal-400"></i><strong>Address:</strong>
+                <span id="modalAddress"></span></p>
+        </div>
+        <div class="mt-6 text-right">
+            <button class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg" onclick="closeModal()">Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Context Modal -->
+<div id="contextModal" class="modal fixed inset-0 z-40 items-center justify-center bg-black/40">
+    <div class="modal-content bg-white rounded-2xl shadow-lg max-w-lg w-full p-6 mx-4">
+        <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-teal-600"><i class="fa-solid fa-circle-info mr-2"></i> Test Context
+            </h3>
+            <button class="text-slate-600" onclick="closeContextModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <table id="contextTable" class="mt-4 w-full text-sm text-slate-700"></table>
+        <div class="mt-6 text-right">
+            <button class="bg-white border border-teal-200 text-teal-600 px-4 py-2 rounded-lg"
+                    onclick="closeContextModal()">Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const users = [[${users}]];
+    const posts = [[${posts}]];
+    const testContext = [[${testContext}]];
+    let allExpanded = false;
+
+    function toggleCollapse(headerRow) {
+        const icon = headerRow.querySelector('.icon');
+        const container = headerRow.nextElementSibling.querySelector('.content-container');
+        const isExpanded = headerRow.classList.toggle('expanded');
+        container.style.height = isExpanded ? container.scrollHeight + 'px' : '0';
+        icon.style.transform = isExpanded ? 'rotate(90deg)' : 'rotate(0deg)';
+    }
+
+    function toggleAll() {
+        const headers = document.querySelectorAll('tr.collapsible');
+        allExpanded = !allExpanded;
+        headers.forEach(header => {
+            const container = header.nextElementSibling.querySelector('.content-container');
+            const icon = header.querySelector('.icon');
+            if (allExpanded) {
+                header.classList.add('expanded');
+                container.style.height = container.scrollHeight + 'px';
+                icon.style.transform = 'rotate(90deg)';
+            } else {
+                header.classList.remove('expanded');
+                container.style.height = '0';
+                icon.style.transform = 'rotate(0deg)';
+            }
+        });
+        document.getElementById('collapseAllBtn').innerHTML = allExpanded ? '<i class="fa-solid fa-compress"></i> Collapse All' : '<i class="fa-solid fa-expand"></i> Expand All';
+    }
+
+    function openModalFromButton(btn) {
+        openModal(btn.getAttribute('data-user-id'));
+    }
+
+    function openModal(userId) {
+        const modal = document.getElementById('userModal');
+        modal.classList.add('show');
+        const userData = users[userId][0];
+        document.getElementById('modalUserName').textContent = userData.name;
+        document.getElementById('modalEmail').textContent = userData.email || '-';
+        document.getElementById('modalUsername').textContent = userData.username || '-';
+        document.getElementById('modalPhone').textContent = userData.phone || '-';
+        document.getElementById('modalWebsite').textContent = userData.website || '-';
+        document.getElementById('modalCompany').textContent = userData.company ? userData.company.name : '-';
+        document.getElementById('modalAddress').textContent = userData.address ? `${userData.address.street}, ${userData.address.suite}, ${userData.address.city}, ${userData.address.zipcode}` : '-';
+    }
+
+    function closeModal() {
+        document.getElementById('userModal').classList.remove('show');
+    }
+
+    function openContextModal() {
+        const modal = document.getElementById('contextModal');
+        const table = document.getElementById('contextTable');
+        table.innerHTML = '';
+        for (const [key, value] of Object.entries(testContext)) {
+            const tr = document.createElement('tr');
+            const keyCell = document.createElement('td');
+            const valueCell = document.createElement('td');
+            keyCell.textContent = key;
+            if (Array.isArray(value)) {
+                value.forEach(v => {
+                    const chip = document.createElement('span');
+                    chip.className = 'chip bg-teal-100 text-teal-800 mr-1';
+                    chip.textContent = v;
+                    valueCell.appendChild(chip);
+                });
+            } else {
+                valueCell.textContent = value;
+            }
+            tr.appendChild(keyCell);
+            tr.appendChild(valueCell);
+            table.appendChild(tr);
+        }
+        modal.classList.add('show');
+    }
+
+    function closeContextModal() {
+        document.getElementById('contextModal').classList.remove('show');
+    }
+
+    window.onclick = function (event) {
+        if (event.target === document.getElementById('userModal')) closeModal();
+        if (event.target === document.getElementById('contextModal')) closeContextModal();
+    };
+
+    const searchInput = document.getElementById('searchInput');
+    const fieldRadios = document.querySelectorAll('.fields-radio input[type="radio"]');
+    searchInput.addEventListener('input', filterTable);
+    fieldRadios.forEach(r => r.addEventListener('change', filterTable));
+
+    function filterTable() {
+        const query = searchInput.value.trim().toLowerCase();
+        const selectedField = document.querySelector('.fields-radio input[type="radio"]:checked').value;
+        const rows = document.querySelectorAll('tr.collapsible');
+        rows.forEach(headerRow => {
+            const containerRow = headerRow.nextElementSibling;
+            const container = containerRow.querySelector('.content-container');
+            const userId = headerRow.querySelector('.details-btn').dataset.userId;
+            const userData = users[userId][0];
+            const postsData = posts[userId];
+            let match = false;
+            if (['name', 'email', 'username', 'phone', 'website', 'company', 'address'].includes(selectedField)) {
+                let value = '';
+                switch (selectedField) {
+                    case 'name':
+                        value = userData.name;
+                        break;
+                    case 'email':
+                        value = userData.email || '';
+                        break;
+                    case 'username':
+                        value = userData.username || '';
+                        break;
+                    case 'phone':
+                        value = userData.phone || '';
+                        break;
+                    case 'website':
+                        value = userData.website || '';
+                        break;
+                    case 'company':
+                        value = userData.company ? userData.company.name : '';
+                        break;
+                    case 'address':
+                        value = userData.address ? `${userData.address.street}, ${userData.address.suite}, ${userData.address.city}, ${userData.address.zipcode}` : '';
+                        break;
+                }
+                if (value.toLowerCase().includes(query)) match = true;
+            }
+            if (!match && ['postTitle', 'postBody'].includes(selectedField)) {
+                match = postsData.some(post => {
+                    const val = selectedField === 'postTitle' ? post.title : post.body;
+                    return val.toLowerCase().includes(query);
+                });
+            }
+            headerRow.style.display = match ? '' : 'none';
+            containerRow.style.display = match ? '' : 'none';
+        });
+    }
+
+    /*]]>*/
+</script>
+
+</body>
+</html>

@@ -1,0 +1,91 @@
+.app-header {
+    display: flex;
+    flex-direction: row;
+    gap: var(--page-margin);
+    margin-left: var(--page-margin);
+    flex-grow: 1;
+    overflow: hidden;
+    z-index: 0
+}
+
+.app-body {
+    z-index: 0;
+    margin-left: var(--page-margin);
+    margin-right: var(--page-margin);
+    margin-top: var(--containers-gap);
+    flex-grow: 11;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.app-popups {
+    position: absolute;
+    align-self: end;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+body.root {
+    width: calc(100vw - 12px);
+    height: calc(100vh - 36px);
+    padding: 24px 12px 12px 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.tabs-container > .tab[data-selected='true'] {
+    cursor: pointer;
+    background: var(--primary-color);
+    color: var(--secondary-color);
+    background-clip: padding-box;
+}
+
+.tabs-container > .tab:hover {
+    cursor: pointer;
+    border: 2px solid var(--primary-color);
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
+}
+
+.tabs-container > .tab {
+    line-height: 0.25;
+    text-decoration: none;
+    color: var(--primary-color);
+    font-weight: bold;
+    font-size: 13pt;
+    user-select: none;
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none; /* Firefox */
+    height: 40%;
+    padding-left: 8px;
+    padding-right: 8px;
+    align-content: center;
+    transition: background-color 0.3s ease-out;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    contain: content;
+}
+
+.tabs-container {
+    align-items: center;
+    gap: 16px;
+}
+
+.app-header .app-info-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    contain: content;
+    overflow: hidden;
+}
+
+.app-header .app-info-container .name {
+    font-size: 18pt;
+}
+
+.app-header .app-info-container .extra {
+    font-size: 12pt;
+}

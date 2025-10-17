@@ -10,25 +10,27 @@ import { JSDOM } from 'jsdom';
 import vueDevTools from 'vite-plugin-vue-devtools';
 import Inspector from 'unplugin-vue-inspector/vite';
 import Inspect from 'vite-plugin-inspect';
+import postcss from 'postcss';
+import cssnano from 'cssnano';
 
 //https://vueschool.io/articles/vuejs-tutorials/7-awesome-vue-js-3-plugins-and-libraries-to-know-in-2023/
 //https://vuejs.org/guide/built-ins/transition-group.html#staggering-list-transitions
+//gsap https://greensock.com/docs/v3/Installation
 function svgMinification(): Plugin {
     return {
         name: 'svg-minification',
         apply: 'build',
         generateBundle() {
             const absPath = path.resolve('src/assets/icon-interactive.svg');
-            const distPath = path.resolve('dist/assets/icon-interactive.svg');
+            const distPath = path.resolve('src/assets/icon-interactive.svg');
             if (fs.existsSync(absPath)) {
                 const originalContent = fs.readFileSync(absPath, 'utf-8');
                 const newContent = minify(originalContent);
                 fs.mkdirSync(path.dirname(distPath), { recursive: true });
                 fs.writeFileSync(distPath, newContent, 'utf-8');
-                this.warn(distPath);
-                this.warn(`[rewrite-file-plugin] Minified SVG file: ${absPath}`);
+                this.info(`✅  Minified SVG file: ${absPath}`);
             } else {
-                this.error(`[rewrite-file-plugin] File not found: ${absPath}`);
+                this.info(`✅  File not found: ${absPath}`);
             }
         },
     };
@@ -46,11 +48,12 @@ function indexHandler(): Plugin {
             apihostPort = new URL(config.env.VITE_API_URL).origin;
             envMode = config.env.MODE;
             version = config.env.VITE_APP_VERSION;
-            this.warn(`[index-handler] API Host: ${apihostPort}`);
-            this.warn(`[index-handler] Environment Mode: ${envMode}`);
-            this.warn(`[index-handler] App Version: ${version}`);
         },
         transformIndexHtml(html) {
+            this.info(` ✅  API Host: ${apihostPort}`);
+            this.info(` ✅  Environment Mode: ${envMode}`);
+            this.info(` ✅  App Version: ${version}`);
+
             const dom = new JSDOM(html);
             const document = dom.window.document;
 
@@ -84,25 +87,68 @@ function indexHandler(): Plugin {
     };
 }
 
-export default defineConfig((config) => {
-    const mode = config.mode || 'production';
+function inlineCriticalCssPlugin(criticalCss: string[]): Plugin {
+    return {
+        name: 'inline-critical-css-plugin',
+        apply: 'build',
+        async closeBundle() {
+            const criticalCssSet = new Set(criticalCss);
+            const distDir = path.resolve('dist');
+            const htmlPath = path.join(distDir, 'index.html');
+
+            try {
+                let html = fs.readFileSync(htmlPath, 'utf-8');
+
+                // Find all <link> tags that reference /assets/*.css
+                const linkRegex = /<link\s+[^>]*href=["']\/([^"']+\.css)["'][^>]*>/gi;
+                const matches = [...html.matchAll(linkRegex)];
+
+                for (const match of matches) {
+                    const fullMatch = match[0];
+                    const cssFile = match[1];
+                    const cssPath = path.join(distDir, cssFile);
+                    if (!criticalCssSet.has(cssFile)) continue;
+
+                    try {
+                        const css = fs.readFileSync(cssPath, 'utf-8');
+                        const result = await postcss([cssnano]).process(css, { from: undefined });
+                        html = html.replace(fullMatch, `<style>${result.css}</style>`);
+                        this.info(`✅  Inlined ${cssFile}`);
+                        fs.rmSync(cssPath);
+                        this.info(`🗑️ ${cssPath} removed after inlining`);
+                    } catch (err) {
+                        this.error(`⚠️  Failed to inline ${cssFile}: ${(err as Error).message}`);
+                    }
+                }
+
+                fs.writeFileSync(htmlPath, html, 'utf-8');
+
+                this.info(`✅  Inlined ${matches.length} CSS file(s) into index.html`);
+            } catch (err) {
+                this.error(`⚠️ Inline CSS plugin error: ${(err as Error).message}`);
+            }
+        },
+    };
+}
+
+export default defineConfig(({ mode }) => {
+    const isDev = mode === 'dev';
     return {
         define: {
             __VUE_OPTIONS_API__: false,
-            optimizeDeps: true,
         },
         plugins: [
             vue(),
             ViteMinifyPlugin(),
-            mode === 'dev' && vueDevTools(),
-            mode === 'dev' &&
+            isDev && vueDevTools(),
+            isDev &&
                 Inspector({
                     enabled: true,
                     toggleButtonVisibility: 'always',
                     toggleButtonPos: 'top-right',
                     launchEditor: 'webstorm',
                 }),
-            mode === 'dev' && Inspect(),
+            isDev && Inspect(),
             visualizer({
                 filename: './bundle-analysis.html', // Output file
                 open: false, // Automatically open report in browser
@@ -112,6 +158,12 @@ export default defineConfig((config) => {
             }),
             svgMinification(),
             indexHandler(),
+            inlineCriticalCssPlugin([
+                'styles/settings.css',
+                'styles/generic.css',
+                'styles/common.css',
+                'styles/main.css',
+            ]),
         ].filter(Boolean),
         base: '/',
         resolve: {

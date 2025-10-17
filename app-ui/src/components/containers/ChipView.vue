@@ -1,32 +1,60 @@
 <script setup lang="ts">
 import type { ChipViewProps } from '@/components/containers/index.ts';
+import IconContainer from '@/components/icons/IconContainer.vue';
+import HorizontalBox from '@/components/layouts/HorizontalBox.vue';
 
 withDefaults(defineProps<ChipViewProps>(), {
     textColor: 'var(--primary-color)',
+    enableCloseButton: false,
 });
 </script>
 
 <template>
-    <div :title="text" class="chip" :style="{ '--color': textColor }">
-        {{ text }}
-    </div>
+    <HorizontalBox :title="text" class="chip" :style="{ '--color': textColor }">
+        <p class="label unselectable">
+            {{ text }}
+        </p>
+        <IconContainer
+            class="close-button"
+            v-if="enableCloseButton"
+            size="24px"
+            icon="close"
+            :fill="textColor"
+            :role="`${role}-close-button`"
+            :tag="tag"
+            :value="value ?? text"
+        />
+    </HorizontalBox>
 </template>
 
 <style scoped>
 .chip {
     --color: none;
     display: inline-flex;
-    padding: 0.5rem 1rem;
-    font-size: 0.7rem;
-    border: 1px solid var(--color);
-    border-radius: 16px;
+    font-size: 0.875rem;
+    border-radius: 8px;
     color: var(--color);
-    width: 100px;
-    background-color: var(--secondary-color);
-    margin: 0.25rem;
+    width: auto;
+    background-color: #eeeeee;
+    margin: 4px;
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
     place-content: center;
+    padding-inline: 4px;
+    justify-content: space-between;
+
+    & > .close-button {
+        cursor: pointer;
+    }
+
+    & > .label {
+        padding: 0;
+        margin: 0;
+        height: 28px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        line-height: 1;
+    }
 }
 </style>

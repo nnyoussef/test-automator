@@ -5,7 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class TestContext {
 
-    private final Map<String, Map<String, Object>> testParamsByUuid = new ConcurrentHashMap<>(100);
+    private final Map<String, Object> testParamsByUuid = new ConcurrentHashMap<>(100);
     private static final TestContext INSTANCE = new TestContext();
 
     public static TestContext getInstance() {
@@ -15,11 +15,11 @@ public class TestContext {
     private TestContext() {
     }
 
-    public Map<String, Object> getTestParamsByUuid(String uuid) {
+    public Object getTestParamsByUuid(String uuid) {
         return testParamsByUuid.get(uuid);
     }
 
-    public void putTestParamsByUuid(String uuid, Map<String, Object> params) {
+    public void putTestParamsByUuid(String uuid, Object params) {
         testParamsByUuid.put(uuid, params);
     }
 

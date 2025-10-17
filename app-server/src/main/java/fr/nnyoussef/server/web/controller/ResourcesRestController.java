@@ -1,7 +1,7 @@
 package fr.nnyoussef.server.web.controller;
 
 import com.intuit.karate.core.Feature;
-import fr.nnyoussef.server.infrastructure.service.functions.BaseFunction;
+import fr.nnyoussef.server.infrastructure.functions.BaseFunction;
 import fr.nnyoussef.server.web.response.BasicTestInfoResponse;
 import fr.nnyoussef.server.web.response.factory.BasicTestInfoResponseFactory;
 import org.springframework.beans.factory.BeanFactory;
@@ -16,6 +16,7 @@ import reactor.core.publisher.Mono;
 
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Optional;
 
 import static java.util.Comparator.comparing;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -30,6 +31,7 @@ public final class ResourcesRestController extends BaseFunction {
                                    BasicTestInfoResponseFactory basicTestInfoResponseFactory) {
         super(beanFactory);
         this.basicTestInfoResponseFactory = basicTestInfoResponseFactory;
+
     }
 
     @GetMapping(
@@ -40,7 +42,7 @@ public final class ResourcesRestController extends BaseFunction {
                 .map(Path::toFile)
                 .map(Feature::read)
                 .map(basicTestInfoResponseFactory::from)
-                .sort((comparing(BasicTestInfoResponse::location)));
+                .sort((comparing(BasicTestInfoResponse::path)));
     }
 
     @GetMapping(
@@ -53,7 +55,19 @@ public final class ResourcesRestController extends BaseFunction {
     }
 
     @GetMapping(value = "download/**")
-    public Flux<DataBuffer> downloadFile(ServerWebExchange webExchange) {
-        return getFileDownloadFunction().apply(webExchange.getRequest().getPath().value());
+    public Flux<DataBuffer> downloadFile(ServerWebExchange webExchange,
+                                         @RequestParam("category") Optional<String> category,
+                                         @RequestParam("fileExtension") Optional<String> fileExtension) {
+        String filePath = webExchange.getRequest().getPath().pathWithinApplication().subPath(9).value();
+
+        String modifiedFilePath = category
+                .map(c -> "/" + c + "/" + filePath)
+                .orElse(filePath);
+
+        int dotIndex = modifiedFilePath.lastIndexOf('.');
+        String modifiedFilePathAndExtension = (dotIndex != -1)
+                ? fileExtension.isPresent() ? modifiedFilePath.substring(0, dotIndex) + "." + fileExtension.get():modifiedFilePath
+                : modifiedFilePath + (filePath.isEmpty() ? "." : "/.") + fileExtension.orElse("txt");
+        return getFileDownloadFunction().apply(modifiedFilePathAndExtension);
     }
 }

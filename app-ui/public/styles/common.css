@@ -1,0 +1,102 @@
+.zero-padding {
+    padding: 0;
+}
+
+.zero-margin {
+    margin: 0;
+}
+
+.inflexible-container {
+    contain: strict;
+}
+
+.layout-containment {
+    contain: layout;
+}
+
+.flex-row-container {
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+    gap: var(--element-gap);
+    &.centered-content {
+        place-items: center;
+    }
+}
+
+.flex-column-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    &.centered-content {
+        align-items: center;
+    }
+}
+
+.unselectable {
+    user-select: none;
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none; /* Firefox */
+}
+
+.vertical-line {
+    width: 1px;
+    background: lightgray;
+    margin-left: 12px;
+    margin-right: 12px;
+    height: 100%;
+}
+
+.box-shadow {
+    box-shadow: var(--box-shadow);
+}
+
+.spinning-animation {
+    animation: spin 0.3s linear infinite;
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.3s ease;
+}
+
+.fade-move,
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
+.toast .close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #666;
+    margin-left: 8px;
+}
+
+.list-item-slide-move, /* apply transition to moving elements */
+.list-item-slide-enter-active,
+.list-item-slide-leave-active {
+    transition: all 0.25s linear;
+}
+
+.list-item-slide-enter-from,
+.list-item-slide-leave-to {
+    transform: translateX(300px);
+}
+
+/* ensure leaving items are taken out of layout flow so that moving
+   animations can be calculated correctly. */
+.list-item-slide-leave-active {
+    position: absolute;
+}

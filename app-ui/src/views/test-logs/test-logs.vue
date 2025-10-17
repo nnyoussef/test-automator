@@ -1,93 +1,3 @@
-<template>
-    <VerticalLayout style="height: 100%">
-        <HorizontalLayout
-            v-if="isTestRunsHistoryNotEmpty"
-            style="gap: var(--element-gap); border-bottom: 1px solid black; height: 55px"
-        >
-            <p style="font-weight: bold">{{ selectedTestLabel }}</p>
-            <IconButton
-                id="test-replay-button"
-                :disabled="isStreamCurrentlyActive"
-                button-label="Repeat"
-                button-text-color="var(--primary-color)"
-                icon="repeat"
-                @click="onTestRepeatClicked"
-            />
-            <IconButton
-                id="history-button"
-                button-label="History"
-                button-text-color=" #5f6368"
-                icon="history"
-                @click="onTestRunsHistoryClicked"
-            />
-            <IconButton
-                id="info-button"
-                button-label="Test Configuration"
-                button-text-color="green"
-                icon="info"
-                @click="onInfoButtonClicked"
-            />
-            <Loader :inprogress="isStreamCurrentlyActive" />
-        </HorizontalLayout>
-        <LazyRenderableView :render="testLogsContainerIsLoaded">
-            <div
-                ref="logContainer"
-                class="inflexible-container test-log-container flex-column-container"
-                style="flex-grow: 1"
-            >
-                <template v-if="isTestRunsHistoryNotEmpty">
-                    <template v-for="(item, index) in testLogs" :key="index">
-                        <div
-                            v-memo="selectedTestUuid"
-                            :class="eventCssClassMap[item.type]"
-                            class="test-log-item"
-                        >
-                            {{ item.data }}
-                        </div>
-                    </template>
-                </template>
-                <template v-else>
-                    <h3>
-                        <RouterLink to="/explorer">No Results Found</RouterLink>
-                    </h3>
-                </template>
-            </div>
-            <div class="test-summary inflexible-container">
-                {{ testLogsSummary }}
-            </div>
-        </LazyRenderableView>
-    </VerticalLayout>
-    <LazyRenderableView :render="selectableItemsTableForTestRunParamsIsLoaded">
-        <DialogView
-            v-model="selectedTestLogParamDialogBoxOpened"
-            :title="`${selectedTestLabel} test configurations`"
-        >
-            <component
-                :is="selectableItemsTable"
-                :column-name="['Field', 'Value']"
-                :disableSelectRow="true"
-                :item-to-row-mapper="(arg: any[]) => [arg[0], arg[1].data]"
-                :items="selectedTestLogParam"
-            ></component>
-        </DialogView>
-    </LazyRenderableView>
-    <LazyRenderableView :render="selectableItemsTableForTestRunsHistoryIsLoaded">
-        <DialogView v-model="testRunHistoryDialogBoxOpened" title="Test Runs History">
-            <component
-                :is="selectableItemsTable"
-                v-memo="[testRunsHistory]"
-                :column-name="['Name', 'Creation Date']"
-                :disableSelectRow="false"
-                :item-to-row-mapper="testRunsHistoryRowMapper"
-                :items="testRunsHistory"
-                :row-label="testRunsHistorySelectedRowLabelGetter"
-                :rowValue="testRunsHistorySelectedRowValueGetter"
-                :selected-value="selectedTestUuid"
-                @on-selected="onTestLogsSelectionChange"
-            ></component>
-        </DialogView>
-    </LazyRenderableView>
-</template>
 <script lang="ts" setup>
 import {
     defineAsyncComponent,
@@ -100,7 +10,7 @@ import {
     useTemplateRef,
 } from 'vue';
 import Loader from '@/components/loading/Loader.vue';
-import VerticalLayout from '@/components/layouts/VerticalLayout.vue';
+import VerticalBox from '@/components/layouts/VerticalBox.vue';
 import DialogView from '@/components/containers/DialogView.vue';
 import {
     type AppEvents,
@@ -112,7 +22,7 @@ import {
     useTestLogsInteractor,
 } from '@/views/test-logs/test-logs.interactor.ts';
 import { useRoute } from 'vue-router';
-import HorizontalLayout from '@/components/layouts/HorizontalLayout.vue';
+import HorizontalBox from '@/components/layouts/HorizontalBox.vue';
 import IconButton from '@/components/interactive/IconButton.vue';
 import {
     type TestLogHistoryViewModel,
@@ -126,18 +36,16 @@ let selectableItemsTable = defineAsyncComponent(
     () => import('@/components/interactive/SelectableItemsTable.vue'),
 );
 useErrorHandler();
-let selectableItemsTableForTestRunsHistoryIsLoaded = ref(false);
-let selectableItemsTableForTestRunParamsIsLoaded = ref(false);
-let testLogsContainerIsLoaded = ref(false);
-let testLogs = shallowRef<{ type: AppEventSourceType; data: string }[]>([]);
-let testLogsSummary = shallowRef<string>();
-let testRunsHistory = ref<any[]>([]);
-let selectedTestLogParam = ref();
-let selectedTestLogParamDialogBoxOpened = ref(false);
-let selectedTestLabel = ref('');
-let testRunHistoryDialogBoxOpened = ref(false);
-let isStreamCurrentlyActive = ref(false);
-let isTestRunsHistoryNotEmpty = ref(false);
+const testLogsContainerIsLoaded = ref(false);
+const testLogs = shallowRef<{ type: AppEventSourceType; data: string }[]>([]);
+const testLogsSummary = shallowRef<string>();
+const testRunsHistory = ref<any[]>([]);
+const selectedTestLogParam = ref();
+const selectedTestLogParamDialogBoxOpened = ref(false);
+const selectedTestLabel = ref('');
+const testRunHistoryDialogBoxOpened = ref(false);
+const isStreamCurrentlyActive = ref(false);
+const isTestRunsHistoryNotEmpty = ref(false);
 
 let selectedTestUuid: string;
 let chunkedTestLogs: { data: string; type: AppEventSourceType }[][] = [];
@@ -146,16 +54,10 @@ const testLogsInputInteractor = useTestLogsInteractor(<string>useRoute().query.u
 const appEvents = inject<AppEvents>(AppEventsInjectionKey);
 const logContainer = useTemplateRef<HTMLDivElement>('logContainer');
 const eventCssClassMap: Record<AppEventSourceType, string> = {
-    SCENARIO: 'scenario-start',
-    STEP_SUCCESSFUL: 'successful',
-    STEP_SUCCESSFUL_RESULTS: 'successful-results',
-    STEP_ERROR: 'error',
-    STEP_ERROR_DETAILS: 'error-details',
-    COMMENT: 'comment',
+    HTML_REPORT: 'html-report',
     TEST_END: '',
 };
 let renderingAnimationFrameId: number;
-let scrollAnimationFrameId: number;
 
 const onTestLogStreamReceived = (logChunk: TestLogsEvent[]) => {
     chunkedTestLogs.push(logChunk);
@@ -163,13 +65,6 @@ const onTestLogStreamReceived = (logChunk: TestLogsEvent[]) => {
         eventHandlerPaused = false;
         renderTestEvent();
     }
-};
-const scrollToBottomOfLogContainer = () => {
-    scrollAnimationFrameId = requestAnimationFrame(() => {
-        if (logContainer.value) {
-            logContainer.value.scrollTop = logContainer.value.scrollHeight;
-        }
-    });
 };
 /**
  *  requestAnimationFrame is very important, it allows us to render elements with size defined by
@@ -181,7 +76,7 @@ const renderTestEvent = () => {
         eventHandlerPaused = true;
         return;
     }
-    renderingAnimationFrameId = requestAnimationFrame(() => {
+    renderingAnimationFrameId = requestIdleCallback(() => {
         const arrayToRender = chunkedTestLogs.shift();
         if (!arrayToRender || arrayToRender.length === 0) {
             eventHandlerPaused = true;
@@ -194,12 +89,15 @@ const renderTestEvent = () => {
             testLogs.value.push(...arrayToRender);
             triggerRef(testLogs);
             isStreamCurrentlyActive.value = false;
+            appEvents?.POPUP.next({
+                type: 'success',
+                message: 'Test execution completed successfully',
+            });
         } else {
             testLogs.value.push(...arrayToRender);
             triggerRef(testLogs);
             renderTestEvent();
         }
-        scrollToBottomOfLogContainer();
     });
 };
 
@@ -210,7 +108,6 @@ const clearTestLogView = () => {
 };
 
 const onTestLogsSelectionChange = (selection: any) => {
-    selectableItemsTableForTestRunParamsIsLoaded.value = false;
     selectedTestUuid = selection.value as string;
     selectedTestLabel.value = selection.label;
     testLogsInputInteractor.stopListeningToTestLogs();
@@ -242,7 +139,10 @@ const onTestLogsHistoryFetched = (history: TestLogHistoryViewModel[]): void => {
 };
 
 const reportError = (error: Error): void => {
-    console.error('Error in test logs interactor:', error);
+    appEvents?.POPUP.next({
+        type: 'error',
+        message: ` 'Error while fetching test reports: ${error.message}`,
+    });
 };
 
 testLogsInputInteractor.outputProtocol = {
@@ -256,9 +156,6 @@ testLogsInputInteractor.outputProtocol = {
 };
 
 const onInfoButtonClicked = () => {
-    if (!selectableItemsTableForTestRunParamsIsLoaded.value) {
-        selectableItemsTableForTestRunParamsIsLoaded.value = true;
-    }
     testLogsInputInteractor.fetchTestLogParams(selectedTestUuid);
     selectedTestLogParamDialogBoxOpened.value = true;
 };
@@ -272,9 +169,6 @@ const onTestRepeatClicked = () => {
 };
 
 const onTestRunsHistoryClicked = () => {
-    if (!selectableItemsTableForTestRunsHistoryIsLoaded.value) {
-        selectableItemsTableForTestRunsHistoryIsLoaded.value = true;
-    }
     testRunHistoryDialogBoxOpened.value = true;
 };
 
@@ -301,94 +195,97 @@ onMounted(() => {
 
 onUnmounted(() => {
     testLogsInputInteractor.destroy();
-    cancelAnimationFrame(renderingAnimationFrameId);
-    cancelAnimationFrame(scrollAnimationFrameId);
+    cancelIdleCallback(renderingAnimationFrameId);
 });
 </script>
-<style scoped>
-.test-summary {
-    border-top: var(--border-thick-solid) black;
-    font-weight: bold;
-    height: 48px;
-    align-content: center;
-    margin-top: 16px;
-}
-
-.test-log-container {
-    height: calc(100% - 55px);
-    content-visibility: auto;
-    contain-intrinsic-size: 5000px;
-    will-change: transform;
-    overflow: auto;
-    margin-top: var(--element-gap);
-    --comment-bg: rgb(33, 150, 243, 0.1);
-    --comment-border: rgb(33, 150, 243);
-    --success-bg: rgb(76, 175, 80, 0.1);
-    --success-border: rgb(76, 175, 80);
-    --error-bg: rgb(176, 0, 32, 0.1);
-    --error-border: rgb(176, 0, 32);
-
-    .test-log-item {
-        min-height: 60px;
-        contain: strict;
-        align-content: center;
-        width: calc(100% - var(--element-gap) - 4px);
-    }
-
-    .scenario-start {
-        border-bottom: var(--border-thick-dashed) lightgray;
-        font-weight: bold;
-        margin-bottom: var(--element-gap);
-        align-content: end;
-    }
-
-    .successful,
-    .successful-results {
-        border: var(--border-thick-solid) var(--success-border);
-        background: var(--success-bg);
-        padding-left: var(--element-gap);
-        border-radius: 8px;
-
-        &.successful {
-            margin-top: var(--element-gap);
-            border-bottom: none;
-            border-radius: 8px 8px 0 0;
-        }
-
-        &.successful-results {
-            border-top: var(--border-thin-dashed) var(--success-border);
-            border-radius: 0 0 8px 8px;
-        }
-    }
-
-    .comment {
-        border: var(--border-thick-solid) var(--comment-border);
-        border-radius: 8px;
-        margin-bottom: var(--element-gap);
-        padding-left: var(--element-gap);
-        background: var(--comment-bg);
-        font-weight: bold;
-        margin-top: var(--element-gap);
-    }
-
-    .error,
-    .error-details {
-        background: var(--error-bg);
-        padding-left: var(--element-gap);
-        border-left: var(--border-thick-solid) var(--error-border);
-        border-right: var(--border-thick-solid) var(--error-border);
-
-        &.error {
-            margin-top: var(--element-gap);
-            border-top: var(--border-thick-solid) var(--error-border);
-            border-radius: 8px 8px 0 0;
-        }
-
-        &.error-details {
-            border-top: var(--border-thin-dashed) var(--error-color);
-            border-bottom: var(--border-thick-solid) var(--error-border);
-            border-radius: 0 0 8px 8px;
-        }
-    }
-}
-</style>
+<template>
+    <VerticalBox style="height: 100%">
+        <HorizontalBox
+            v-if="isTestRunsHistoryNotEmpty"
+            style="gap: var(--element-gap); border-bottom: 1px solid black; height: 55px"
+        >
+            <p style="font-weight: bold">{{ selectedTestLabel }}</p>
+            <IconButton
+                id="test-replay-button"
+                :disabled="isStreamCurrentlyActive"
+                button-label="Repeat"
+                button-text-color="var(--primary-color)"
+                icon="repeat"
+                @click="onTestRepeatClicked"
+            />
+            <IconButton
+                id="history-button"
+                button-label="History"
+                button-text-color=" #5f6368"
+                icon="history"
+                @click="onTestRunsHistoryClicked"
+            />
+            <IconButton
+                id="info-button"
+                button-label="Test Configuration"
+                button-text-color="green"
+                icon="info"
+                @click="onInfoButtonClicked"
+            />
+            <Loader :inprogress="isStreamCurrentlyActive" />
+        </HorizontalBox>
+        <LazyRenderableView :render="testLogsContainerIsLoaded">
+            <div
+                ref="logContainer"
+                class="inflexible-container test-log-container flex-column-container"
+                style="flex-grow: 1"
+            >
+                <template v-if="isTestRunsHistoryNotEmpty">
+                    <template v-for="(item, index) in testLogs" :key="index">
+                        <iframe
+                            v-if="item.type === 'HTML_REPORT'"
+                            :class="eventCssClassMap[item.type]"
+                            class="test-log-item"
+                            title="Embeded Test Report"
+                            :src="item.data"
+                        />
+                    </template>
+                </template>
+                <template v-else>
+                    <h3>
+                        <RouterLink to="/explorer">No Results Found</RouterLink>
+                    </h3>
+                </template>
+            </div>
+            <div class="test-summary inflexible-container">
+                {{ testLogsSummary }}
+            </div>
+        </LazyRenderableView>
+    </VerticalBox>
+    <LazyRenderableView :render="selectedTestLogParamDialogBoxOpened">
+        <DialogView
+            v-model="selectedTestLogParamDialogBoxOpened"
+            :title="`${selectedTestLabel} test configurations`"
+        >
+            <component
+                :is="selectableItemsTable"
+                :column-name="['Field', 'Value']"
+                :disableSelectRow="true"
+                :item-to-row-mapper="(arg: any[]) => [arg[0], arg[1].data]"
+                :items="selectedTestLogParam"
+            />
+        </DialogView>
+    </LazyRenderableView>
+    <LazyRenderableView :render="testRunHistoryDialogBoxOpened">
+        <DialogView v-model="testRunHistoryDialogBoxOpened" title="Test Runs History">
+            <component
+                :is="selectableItemsTable"
+                v-memo="[testRunsHistory]"
+                :column-name="['Name', 'Creation Date']"
+                :disableSelectRow="false"
+                :item-to-row-mapper="testRunsHistoryRowMapper"
+                :items="testRunsHistory"
+                :row-label="testRunsHistorySelectedRowLabelGetter"
+                :rowValue="testRunsHistorySelectedRowValueGetter"
+                :selected-value="selectedTestUuid"
+                @on-selected="onTestLogsSelectionChange"
+            />
+        </DialogView>
+    </LazyRenderableView>
+</template>
+<style src="@/assets/styles/views/test-logs.css" scoped />

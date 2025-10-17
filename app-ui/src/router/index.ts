@@ -21,15 +21,9 @@ const router = createRouter({
             meta: { tabIndex: 1 },
         },
         {
-            path: '/upload',
-            component: () => import('@/views/upload-resources/upload-resources.vue'),
-            meta: { tabIndex: 2 },
-        },
-
-        {
             path: '/help',
             component: () => import('@/views/help/help.vue'),
-            meta: { tabIndex: 3 },
+            meta: { tabIndex: 2 },
         },
         {
             path: '/:pathMatch(.*)*',

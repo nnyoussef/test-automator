@@ -6,7 +6,7 @@ import { ApiEndpointsConstants } from '@/common/constantes/api-endpoint-constant
 
 type TestResponseRecord = {
     name: string;
-    location: string;
+    path: string;
 };
 type AllAvailableTestResponse = TestResponseRecord[];
 

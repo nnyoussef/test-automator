@@ -1,0 +1,8 @@
+html {
+    background: var(--secondary-color);
+}
+
+* {
+    font-family: var(--application-font), sans-serif;
+    position: relative;
+}

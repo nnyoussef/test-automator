@@ -1,4 +1,6 @@
-import { useGpState, useTestLogsState } from '@/stores';
+import { useTestLogsState } from '@/stores';
+import { useGpState } from '@/stores/gp-store';
+
 import { UnsupportedOperationError } from '@/common/exceptions';
 import { type AppConfigs, appConfigs } from '@/config';
 import type { Optional, ReadonlyKeyValueMap } from '@/common/types.ts';
@@ -83,8 +85,7 @@ export abstract class BaseInteractor<OUT_PROTOCOL, ENTITY> {
     }
 
     /**
-     * Destroys the interactor, releasing any resources.
-     * @throws UnsupportedOperationError if the destroy method is not implemented.
+     * Destroys the interactor by aborting any ongoing operations.
      */
     public destroy(): void {
         this.abortController.abort();

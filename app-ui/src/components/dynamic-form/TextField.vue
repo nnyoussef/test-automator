@@ -14,32 +14,32 @@ const { inputRef, tooltipShow } = useInputValidation(props, model);
 </script>
 
 <template>
-    <div class="flex-row-container input-field">
-        <p class="zero-padding zero-margin unselectable label">
-            {{ label }}
-            <i v-if="!required" class="unselectable"><small>(Optional)</small></i>
-        </p>
+    <div class="input-field flex-row-container centered-content">
         <input
             ref="inputRef"
-            class="zero-padding zero-margin left-margin-small input-box"
             type="text"
+            :required="required"
             :id="name"
             :name="name"
-            :required="required"
+            :placeholder="placeHolder"
             :pattern="pattern"
             v-model="model.data"
             :minlength="minLength"
             :maxlength="maxLength"
-            :placeholder="placeHolder"
         />
+        <label :for="name">
+            {{ label }}
+            <i v-if="!required" class="unselectable"><small>(Optional)</small></i>
+        </label>
         <IconButton
             :tooltipShow="tooltipShow"
             :tooltipContent="description"
             :buttonId="`${parentId}-${name}-tooltip`"
             buttonTextColor="var(--neutral-accent-color)"
             icon="question"
-            buttonRole="tooltip"
-            :buttonValue="name"
+            :role="'tooltip'"
+            :value="name"
+            :tag="name"
         />
     </div>
 </template>

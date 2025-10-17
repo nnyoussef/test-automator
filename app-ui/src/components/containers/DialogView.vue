@@ -19,8 +19,10 @@ onMounted(() => {
     );
 });
 const close = () => {
-    dialogBox.value?.close();
-    model.value = false;
+    queueMicrotask(() => {
+        dialogBox.value?.close();
+        model.value = false;
+    });
 };
 </script>
 

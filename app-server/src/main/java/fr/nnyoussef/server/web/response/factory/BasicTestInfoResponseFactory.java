@@ -1,7 +1,7 @@
 package fr.nnyoussef.server.web.response.factory;
 
 import com.intuit.karate.core.Feature;
-import fr.nnyoussef.server.infrastructure.service.functions.BaseFunction;
+import fr.nnyoussef.server.infrastructure.functions.BaseFunction;
 import fr.nnyoussef.server.web.response.BasicTestInfoResponse;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.annotation.Lazy;
@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
 
-import static com.intuit.karate.StringUtils.EMPTY;
 import static java.nio.file.Path.of;
 
 @Component
@@ -21,13 +20,16 @@ public final class BasicTestInfoResponseFactory extends BaseFunction {
     }
 
     public BasicTestInfoResponse from(Feature feature) {
-        Path resDir = of(getResDir());
+        Path testSuitePath = of(getResDir(), "test-suites").toAbsolutePath();
         Path featureDir = feature.getResource()
                 .getFile()
                 .toPath();
+
+        Path featureDirRelativeToTestSuite = testSuitePath.relativize(featureDir);
+
         return new BasicTestInfoResponse(
                 feature.getName(),
-                featureDir.toString().replace(resDir.toString(), EMPTY),
+                featureDirRelativeToTestSuite.toString(),
                 feature.getDescription()
         );
     }

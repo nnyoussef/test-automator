@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import HorizontalLayout from '@/components/layouts/HorizontalLayout.vue';
+import HorizontalBox from '@/components/layouts/HorizontalBox.vue';
 import type { IconContainerProps } from '.';
 import { computed } from 'vue';
 import SvgSprite from '@/assets/icon-interactive.svg';
@@ -8,17 +8,18 @@ const props = withDefaults(defineProps<IconContainerProps>(), {
     fill: '',
     size: '24px',
     className: '',
-    label: '',
 });
 const iconHref = computed(() => `${SvgSprite}#${props.icon}`);
 </script>
 
 <template>
-    <HorizontalLayout
+    <HorizontalBox
         :class="className"
         v-memo="props.icon"
         :data-role="role"
-        :data-element-value="value"
+        :data-tag="tag"
+        :data-value="value"
+        :style="{ width: size, height: height ?? size }"
     >
         <svg
             ref="iconRef"
@@ -26,11 +27,11 @@ const iconHref = computed(() => `${SvgSprite}#${props.icon}`);
             :width="size"
             :fill="fill"
             :data-role="role"
-            :data-element-value="value"
+            :data-value="value"
+            :data-tag="tag"
         >
-            <use :data-role="role" :data-element-value="value" :href="iconHref" />
+            <use :data-role="role" :data-value="value" :href="iconHref" :data-tag="tag" />
         </svg>
-
-        <p :data-role="role" :data-element-value="value" :style="{ color: fill }">{{ label }}</p>
-    </HorizontalLayout>
+    </HorizontalBox>
 </template>
+<style src="@/assets/styles/component/icon-button.css" />

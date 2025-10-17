@@ -1,4 +1,9 @@
-import type { ReadonlyKeyValueMap, SingleOrArray, TextOrNumber } from '@/common/types';
+import type {
+    CommonComponentAttribute,
+    ReadonlyKeyValueMap,
+    SingleOrArray,
+    TextOrNumber,
+} from '@/common/types';
 import { Subject } from 'rxjs';
 import { type Component, defineAsyncComponent } from 'vue';
 
@@ -62,6 +67,7 @@ type FormConfigurations = ReadonlyKeyValueMap<FormInput>;
 type DynamicallyConfiguredFormEvents = {
     RESET: Subject<void>;
     TOOLTIP_CLICKED: Subject<string | undefined>;
+    SELECT_FIELD_CHIP_CLOSE_CLICKED: Subject<CommonComponentAttribute>;
 };
 
 interface FormControl<T extends FormControlDataType> {

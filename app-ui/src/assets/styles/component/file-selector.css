@@ -1,0 +1,30 @@
+.file-selector {
+    margin-left: var(--element-gap);
+
+    & .header {
+        margin-top: var(--element-gap);
+    }
+
+    & .panel {
+        display: contents;
+    }
+
+    & .item {
+        cursor: pointer;
+        transition: background 100ms ease-out;
+        gap: 8px;
+        margin-top: var(--element-gap);
+        height: 35px;
+        width: 100%;
+        align-content: center;
+        line-height: 1;
+        &:hover {
+            background: rgba(128, 128, 128, 0.2);
+        }
+    }
+
+    & .item[data-selected='true'] {
+        background: rgba(128, 128, 128, 0.2);
+        transition: background 100ms ease-out;
+    }
+}
