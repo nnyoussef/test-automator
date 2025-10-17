@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onUnmounted, ref, watch } from 'vue';
+import { computed, onUnmounted, ref, toRaw, watch } from 'vue';
 import {
     type DynamicallyConfiguredFormProps,
     formComponentsLookup,
@@ -15,8 +15,19 @@ import {
 } from '@/components/dynamic-form/common/form.events.ts';
 import type { KeyValueMap } from '@/common/types.ts';
 import NoteCardView from '@/components/containers/NoteCardView.vue';
+import IconButton from '@/components/interactive/IconButton.vue';
+import VerticalLayout from '@/components/layouts/VerticalLayout.vue';
 
-let form = ref<FormGroup<FormControlDataType>>({});
+const form = ref<FormGroup<FormControlDataType>>({});
+const formErrors = computed(() => {
+    const errors: { key: string; message: string }[] = [];
+    Object.entries(form.value).forEach(([key, control]) => {
+        if (!control.isValid) {
+            errors.push({ key, message: control.message ?? 'Unhandled Error' });
+        }
+    });
+    return errors;
+});
 
 let isFormInvalid = ref(false);
 
@@ -38,7 +49,7 @@ function isFormValid(form: KeyValueMap<FormControl<any>>) {
 const onSubmit = () => {
     if (isFormValid(form.value)) {
         isFormInvalid.value = false;
-        emit('onSubmitClicked', form.value);
+        emit('onSubmitClicked', toRaw(form.value));
     } else {
         isFormInvalid.value = true;
     }
@@ -79,88 +90,93 @@ onUnmounted(() => destroyDynamicallyConfiguredFormEvents(props.formId));
             height: 100%;
             contain: strict;
             gap: var(--element-gap);
+            margin-left: var(--element-gap);
         "
     >
-        <div
-            @click="onClick"
-            style="max-height: calc(100% - 50px); overflow: auto; contain: layout"
-            class="section-list-container"
-        >
-            <template v-for="(item, key, index) in formConfiguration" :key="key">
-                <section :style="{ zIndex: -index, position: 'relative' }">
-                    <horizontal-layout style="gap: 48px">
-                        <template v-if="fieldTypeExists(item.type)">
-                            <component
-                                class="field"
-                                style="flex-grow: 1; width: 50%"
-                                v-model="form[key]"
-                                :is="getFieldComponentByType(item.type)"
-                                :name="key"
-                                :parentId="formId"
-                                v-bind="item"
-                            />
-                            <NoteCardView
-                                class="notice"
-                                style="align-self: baseline; width: 50%"
-                                :note="form[key]?.message"
-                                :type="form[key]?.isValid ? 'success' : 'error'"
-                            />
-                        </template>
-                        <component
-                            v-else
-                            :is="getFieldComponentByType('field_not_implemented')"
-                            :name="key"
-                            :type="item.type"
-                        />
-                    </horizontal-layout>
-                </section>
-            </template>
-        </div>
-        <template v-if="formConfiguration">
-            <button
-                :disabled="disableSubmitButton"
-                class="button"
-                @click="onSubmit()"
-                type="button"
+        <VerticalLayout @click="onClick" class="section-list-container">
+            <section
+                v-for="(item, key, index) in formConfiguration"
+                :key="key"
+                :style="{ zIndex: -index, position: 'relative' }"
             >
-                Submit
-            </button>
-        </template>
-        <template v-else>
-            <h3 style="width: 8em">No Test Selected</h3>
-        </template>
+                <horizontal-layout>
+                    <template v-if="fieldTypeExists(item.type)">
+                        <component
+                            class="field"
+                            v-model="form[key]"
+                            :is="getFieldComponentByType(item.type)"
+                            :name="key"
+                            :parentId="formId"
+                            v-bind="item"
+                        />
+                        <NoteCardView
+                            class="notice"
+                            :note="form[key]?.message"
+                            :type="form[key]?.isValid ? 'success' : 'error'"
+                        />
+                    </template>
+                    <component
+                        v-else
+                        :is="getFieldComponentByType('field_not_implemented')"
+                        :name="key"
+                        :type="item.type"
+                    />
+                </horizontal-layout>
+            </section>
+        </VerticalLayout>
+        <IconButton
+            v-if="formConfiguration"
+            buttonTextColor="var(--success-accent-color)"
+            icon="start"
+            buttonLabel="Submit"
+            @click="onSubmit()"
+            type="button"
+            style="font-size: 18pt"
+        />
+        <h3 v-else style="width: 8em">No Test Selected</h3>
     </div>
     <DialogView
         v-model="isFormInvalid"
         title="The test cannot be launched due to some errors in the Form"
     >
-        <template v-for="(item, index) in form" :key="index">
-            <NoteCardView v-if="!item.isValid" type="error">
-                <span>
-                    Input {{ index }} is invalid with the following message:
-                    <strong>{{ item.message }}</strong>
-                </span>
-            </NoteCardView>
-        </template>
+        <NoteCardView v-for="item in formErrors" :key="item.key" type="error">
+            <span>
+                Input {{ item.key }} is invalid with the following message:
+                <strong>{{ item.message }}</strong>
+            </span>
+        </NoteCardView>
     </DialogView>
 </template>
 <style>
+.section-list-container {
+    max-height: calc(100% - 50px);
+    overflow: auto;
+    contain: layout;
+    gap: var(--element-gap);
+}
+
 .section-list-container > section {
-    margin: var(--element-gap);
     contain: layout;
     position: relative;
+    margin-top: var(--element-gap);
 
     & > div {
+        gap: 48px;
+
         & > * {
             position: relative;
         }
 
         & > .field {
             z-index: 1;
+            flex-grow: 1;
+            width: 50%;
         }
 
         & > .notice {
             z-index: 0;
+            align-self: baseline;
+            width: 50%;
         }
     }
 }
@@ -174,7 +190,7 @@ onUnmounted(() => destroyDynamicallyConfiguredFormEvents(props.formId));
     display: flex;
     flex-direction: row;
     align-items: center;
-    border: 1px solid black;
+    border: 1px solid var(--neutral-accent-color);
     border-radius: 8px 8px 0 0;
     z-index: 1;
     position: relative;
@@ -183,7 +199,7 @@ onUnmounted(() => destroyDynamicallyConfiguredFormEvents(props.formId));
 .select-field .footer {
     max-height: 80px;
     overflow: auto;
-    border: 1px solid black;
+    border: 1px solid var(--neutral-accent-color);
     border-top: none;
     border-radius: 0 0 8px 8px;
     z-index: 0;
@@ -205,7 +221,7 @@ onUnmounted(() => destroyDynamicallyConfiguredFormEvents(props.formId));
     contain: content;
     max-height: 200px;
     overflow: auto;
-    border: 1px solid black;
+    border: 1px solid var(--neutral-accent-color);
     border-top: none;
     position: relative;
     z-index: 0;
@@ -226,7 +242,7 @@ onUnmounted(() => destroyDynamicallyConfiguredFormEvents(props.formId));
 }
 
 .input-field {
-    border: 1px solid black;
+    border: 1px solid var(--neutral-accent-color);
     border-radius: 5px;
     width: fit-content;
     height: 50px;

@@ -92,6 +92,7 @@ class RunTestInteractor
             return;
         }
         const testParams = this.runTestDataFormatter(form);
+
         testRunRepository
             .registerForTestRunner({ path, testParams }, this.abortController)
             .pipe(map((data) => data.data.token))
@@ -160,8 +161,7 @@ class RunTestInteractor
     private runTestDataFormatter(form: KeyValueMap): KeyValueMap<string> {
         const testParams: KeyValueMap<string> = {};
         Object.entries(form).forEach(([key, value]) => {
-            const data = toRaw(toRaw(value).data);
-            testParams[key] = String(data);
+            testParams[key] = toRaw(toRaw(value).data);
         });
         return testParams;
     }

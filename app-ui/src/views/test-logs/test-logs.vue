@@ -154,6 +154,9 @@ const eventCssClassMap: Record<AppEventSourceType, string> = {
     COMMENT: 'comment',
     TEST_END: '',
 };
+let renderingAnimationFrameId: number;
+let scrollAnimationFrameId: number;
+
 const onTestLogStreamReceived = (logChunk: TestLogsEvent[]) => {
     chunkedTestLogs.push(logChunk);
     if (eventHandlerPaused) {
@@ -161,7 +164,13 @@ const onTestLogStreamReceived = (logChunk: TestLogsEvent[]) => {
         renderTestEvent();
     }
 };
-
+const scrollToBottomOfLogContainer = () => {
+    scrollAnimationFrameId = requestAnimationFrame(() => {
+        if (logContainer.value) {
+            logContainer.value.scrollTop = logContainer.value.scrollHeight;
+        }
+    });
+};
 /**
  *  requestAnimationFrame is very important, it allows us to render elements with size defined by
  *  appConfig.maxElementToRenderPerRenderingCycle as soon as they enter the buffer and synchronized with frame rate,
@@ -172,7 +181,7 @@ const renderTestEvent = () => {
         eventHandlerPaused = true;
         return;
     }
-    useRequestAnimationFrame(() => {
+    renderingAnimationFrameId = requestAnimationFrame(() => {
         const arrayToRender = chunkedTestLogs.shift();
         if (!arrayToRender || arrayToRender.length === 0) {
             eventHandlerPaused = true;
@@ -190,6 +199,7 @@ const renderTestEvent = () => {
             triggerRef(testLogs);
             renderTestEvent();
         }
+        scrollToBottomOfLogContainer();
     });
 };
 
@@ -291,6 +301,8 @@ onMounted(() => {
 
 onUnmounted(() => {
     testLogsInputInteractor.destroy();
+    cancelAnimationFrame(renderingAnimationFrameId);
+    cancelAnimationFrame(scrollAnimationFrameId);
 });
 </script>
 <style scoped>
@@ -301,6 +313,7 @@ onUnmounted(() => {
     align-content: center;
     margin-top: 16px;
 }
+
 .test-log-container {
     height: calc(100% - 55px);
     content-visibility: auto;

@@ -5,7 +5,7 @@ Feature: Test N01
   """
     Print
     """
-    * print karate.properties['key3']
+    * print context
     * assert 1 == 1
     * print '123'
     # Simple Testing 12345678910

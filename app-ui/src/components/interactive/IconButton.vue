@@ -4,7 +4,6 @@ import IconContainer from '@/components/icons/IconContainer.vue';
 import { ref, watchEffect } from 'vue';
 import type { IconButtonProps } from '@/components/interactive/index.ts';
 import TooltipView from '@/components/containers/TooltipView.vue';
-import NoteCardView from '@/components/containers/NoteCardView.vue';
 
 const props = withDefaults(defineProps<IconButtonProps>(), {
     iconClassName: '',

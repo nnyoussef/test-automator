@@ -8,7 +8,6 @@ import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 import reactor.util.context.Context;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -47,6 +46,7 @@ public final class TestRunningRestController extends BaseFunction {
                 .map(getTestRunnerInputDataFunction())
                 .cast(FeatureRunnerRequestBody.class)
                 .flatMapMany(getKarateFeatureRunnerFunction())
+                .contextWrite(Context.of("id", uuid))
                 .subscribeOn(parallel());
     }
 }
