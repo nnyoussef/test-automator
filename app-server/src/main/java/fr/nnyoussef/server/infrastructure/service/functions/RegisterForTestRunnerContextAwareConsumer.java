@@ -21,6 +21,5 @@ public final class RegisterForTestRunnerContextAwareConsumer extends BaseFunctio
                       ContextView context) {
         String id = context.get("id");
         getCache().put(id, featureRunnerRequestBody);
-        TestContext.getInstance().putTestParamsByUuid(id, featureRunnerRequestBody.testParams());
     }
 }
