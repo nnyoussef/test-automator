@@ -1,0 +1,84 @@
+key1:
+  type: select
+  defaultValue:
+    - Test Number 1
+  required: true
+  label: Test Number of the First Batch
+  description: test
+  options:
+    - Test Number 1
+    - Test Number 2
+    - Test Number 3
+    - Test Number 4
+    - Test Number 5
+    - Test Number 6
+    - Test Number 7
+    - Test Number 8
+key2:
+  type: number
+  required: true
+  maxValue: 100
+  minValue: 10
+  defaultValue: 25
+  description: sdaas,
+  placeHolder: 10
+  label: Insert Category
+  step: 0.0001
+key3:
+  type: select
+  maxSelections: 10
+  minSelection: 1
+  defaultValue:
+    - Test Number 1
+  required: true
+  label: Test Number to Execute After First Batch
+  description: test
+  options:
+    - Test Number 1
+    - Test Number 2
+    - Test Number 3
+    - Test Number 4
+    - Test Number 5
+    - Test Number 6
+    - Test Number 7
+    - Test Number 8
+    - Test Number 9
+    - Test Number 10
+    - Test Number 11
+    - Test Number 12
+    - Test Number 13
+    - Test Number 14
+    - Test Number 15
+    - Test Number 16
+    - Test Number 17
+    - Test Number 18
+key4:
+  type: text
+  maxLength: 10
+  minLength: 1
+  required: true
+  defaultValue: 1
+  pattern: '[0-9]'
+  description: sdaas,
+  placeHolder: testtt
+  label: Insert Proc Number
+  inputExample: 1
+key5:
+  type: text
+  maxLength: 10
+  minLength: 1
+  required: false
+  defaultValue: 1
+  pattern: '[0-9]'
+  description: sdaas,
+  placeHolder: testtt
+  label: Insert Proc Number
+  inputExample: 1
+key6:
+  type: file
+  maxSize: 10
+  required: false
+  description: sdaas,
+  label: Insert Proc Number
+  placeHolder: testtt
+  allowedFileExtension: application/xml
