@@ -1,6 +1,7 @@
 package fr.nnyoussef.server.infrastructure.functions;
 
 import com.github.benmanes.caffeine.cache.Cache;
+import fr.nnyoussef.server.infrastructure.functions.karaterunner.FeatureRunnerFunction;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -26,8 +27,8 @@ public class BaseFunction {
         return beanFactory.getBean(tClass);
     }
 
-    public KarateFeatureRunnerFunction getKarateFeatureRunnerFunction() {
-        return getBean(KarateFeatureRunnerFunction.class);
+    public FeatureRunnerFunction getKarateFeatureRunnerFunction() {
+        return getBean(FeatureRunnerFunction.class);
     }
 
     public GetAllFeaturesFilesPathSupplier getAllFeaturesFilesPathSupplier() {

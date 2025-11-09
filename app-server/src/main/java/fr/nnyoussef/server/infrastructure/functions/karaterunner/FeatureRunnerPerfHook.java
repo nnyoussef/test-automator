@@ -1,4 +1,4 @@
-package fr.nnyoussef.server.infrastructure.functions.karaterunnerhook;
+package fr.nnyoussef.server.infrastructure.functions.karaterunner;
 
 import com.intuit.karate.PerfHook;
 import com.intuit.karate.core.FeatureResult;
