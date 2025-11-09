@@ -14,13 +14,13 @@ import static fr.nnyoussef.server.core.domain.enums.TestResultsEvent.HTML_REPORT
 import static java.util.UUID.randomUUID;
 import static reactor.core.scheduler.Schedulers.boundedElastic;
 
-public final class FeatureRenderingFunction implements BiConsumer<String, Map<String, Object>> {
+public final class FeatureUiRenderingFunction implements BiConsumer<String, Map<String, Object>> {
 
     private final UiRenderFunction uiRenderFunction;
     private final BiConsumer<TestResultsEvent, String> dataStreamPublisher;
     private final Consumer<Mono<?>> jobExporter;
 
-    public FeatureRenderingFunction(UiRenderFunction uiRenderFunction,
+    public FeatureUiRenderingFunction(UiRenderFunction uiRenderFunction,
                                     BiConsumer<TestResultsEvent, String> dataStreamPublisher,
                                     Consumer<Mono<?>> jobExporter) {
         this.uiRenderFunction = uiRenderFunction;

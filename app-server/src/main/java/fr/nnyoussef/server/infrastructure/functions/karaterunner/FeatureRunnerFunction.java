@@ -7,7 +7,7 @@ import fr.nnyoussef.server.core.domain.enums.TestResultsEvent;
 import fr.nnyoussef.server.infrastructure.functions.BaseFunction;
 import fr.nnyoussef.server.infrastructure.functions.UiRenderFunction;
 import fr.nnyoussef.server.infrastructure.functions.karaterunner.featurescriptfunction.FeatureProgressReporter;
-import fr.nnyoussef.server.infrastructure.functions.karaterunner.featurescriptfunction.FeatureRenderingFunction;
+import fr.nnyoussef.server.infrastructure.functions.karaterunner.featurescriptfunction.FeatureUiRenderingFunction;
 import fr.nnyoussef.server.web.response.FeatureRunnerRequestBody;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.BeanFactory;
@@ -69,7 +69,7 @@ public final class FeatureRunnerFunction
 
             ImmutableMap.Builder<@NonNull String, @NonNull Object> variables = ImmutableMap.builder();
             variables.put(ID.getVariableName(), uuid);
-            variables.put(RENDER.getVariableName(), new FeatureRenderingFunction(uiRenderFunction, dataStreamPublisher, jobExporter));
+            variables.put(RENDER.getVariableName(), new FeatureUiRenderingFunction(uiRenderFunction, dataStreamPublisher, jobExporter));
             variables.put(PROGRESS_PUBLISHER.getVariableName(), new FeatureProgressReporter(dataStreamPublisher));
             variables.put(TEST_CONTEXT.getVariableName(), testParams);
             variables.put(DATA_HOLDER.getVariableName(), new HashMap<>());
