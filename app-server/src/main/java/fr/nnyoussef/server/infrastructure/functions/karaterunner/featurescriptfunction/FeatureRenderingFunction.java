@@ -1,4 +1,4 @@
-package fr.nnyoussef.server.infrastructure.functions.karaterunner;
+package fr.nnyoussef.server.infrastructure.functions.karaterunner.featurescriptfunction;
 
 import fr.nnyoussef.server.core.domain.UiRenderingRequest;
 import fr.nnyoussef.server.core.domain.enums.TestResultsEvent;

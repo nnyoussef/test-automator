@@ -6,6 +6,8 @@ import com.intuit.karate.Runner.Builder;
 import fr.nnyoussef.server.core.domain.enums.TestResultsEvent;
 import fr.nnyoussef.server.infrastructure.functions.BaseFunction;
 import fr.nnyoussef.server.infrastructure.functions.UiRenderFunction;
+import fr.nnyoussef.server.infrastructure.functions.karaterunner.featurescriptfunction.FeatureProgressReporter;
+import fr.nnyoussef.server.infrastructure.functions.karaterunner.featurescriptfunction.FeatureRenderingFunction;
 import fr.nnyoussef.server.web.response.FeatureRunnerRequestBody;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.BeanFactory;
@@ -13,11 +15,13 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static fr.nnyoussef.server.core.domain.enums.FeatureRunnerContextVariables.*;
@@ -52,6 +56,7 @@ public final class FeatureRunnerFunction
         return Flux.create(sink -> {
 
             FeatureRunnerPerfHook featureRunnerPerfHook = new FeatureRunnerPerfHook(sink);
+            Consumer<Mono<?>> jobExporter = featureRunnerPerfHook::addJob;
 
             BiConsumer<TestResultsEvent, String> dataStreamPublisher = (testResultsEvent, message) -> {
                 ServerSentEvent<String> serverSentEvent = createSse(testResultsEvent, randomUUID().toString(), message);
@@ -64,7 +69,7 @@ public final class FeatureRunnerFunction
 
             ImmutableMap.Builder<@NonNull String, @NonNull Object> variables = ImmutableMap.builder();
             variables.put(ID.getVariableName(), uuid);
-            variables.put(RENDER.getVariableName(), new FeatureRenderingFunction(uiRenderFunction, dataStreamPublisher, featureRunnerPerfHook::addJob));
+            variables.put(RENDER.getVariableName(), new FeatureRenderingFunction(uiRenderFunction, dataStreamPublisher, jobExporter));
             variables.put(PROGRESS_PUBLISHER.getVariableName(), new FeatureProgressReporter(dataStreamPublisher));
             variables.put(TEST_CONTEXT.getVariableName(), testParams);
             variables.put(DATA_HOLDER.getVariableName(), new HashMap<>());
