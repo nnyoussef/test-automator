@@ -11,6 +11,8 @@ export const AppEventsInjectionKey: InjectionKey<AppEvents> = Symbol() as Inject
 export enum AppEventSourceEnum {
     TEST_END,
     HTML_REPORT,
+    PROGRESS_EVENT_MESSAGE,
+    PROGRESS_EVENT_PERCENTAGE,
 }
 
 export type AppEventSourceType = keyof typeof AppEventSourceEnum;

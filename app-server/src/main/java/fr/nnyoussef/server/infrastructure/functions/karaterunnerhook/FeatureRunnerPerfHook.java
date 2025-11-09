@@ -15,6 +15,7 @@ import java.util.List;
 import static fr.nnyoussef.server.core.domain.enums.FeatureRunnerContextVariables.ID;
 import static fr.nnyoussef.server.core.domain.enums.TestResultsEvent.TEST_END;
 import static fr.nnyoussef.server.infrastructure.common.ServerSentFactory.createSse;
+import static java.lang.String.format;
 import static org.apache.commons.lang3.time.DurationFormatUtils.formatDuration;
 
 public class FeatureRunnerPerfHook implements PerfHook {
@@ -37,7 +38,7 @@ public class FeatureRunnerPerfHook implements PerfHook {
     @Override
     public void reportPerfEvent(PerfEvent perfEvent) {
         if (perfEvent.isFailed()) {
-            sink.error(new Throwable());
+            sink.error(new Throwable(perfEvent.getMessage()));
         }
     }
 
@@ -54,15 +55,13 @@ public class FeatureRunnerPerfHook implements PerfHook {
         int failedCount = featureResult.getFailedCount();
         String testDurationFormatted = formatDuration(testDuration, "HH:mm:ss.SSS");
 
-        String testEndMessage = String.format(TEST_END_EVENT_MESSAGE_FORMAT, passedCount, failedCount, testDurationFormatted);
+        String testEndMessage = format(TEST_END_EVENT_MESSAGE_FORMAT, passedCount, failedCount, testDurationFormatted);
 
-        Mono.when(jobs)
-                .doOnTerminate(() -> {
+        Mono.when(jobs).doOnTerminate(() -> {
                     String executionId = sink.contextView().get(ID.getVariableName());
                     sink.next(createSse(TEST_END, executionId, testEndMessage));
                     sink.complete();
-                })
-                .subscribe();
+                }).subscribe();
     }
 
     @Override

@@ -238,6 +238,7 @@ onUnmounted(() => {
                 <template v-if="isTestRunsHistoryNotEmpty">
                     <template v-for="(item, index) in testLogs" :key="index">
                         <iframe
+                            referrerpolicy="no-referrer"
                             v-if="item.type === 'HTML_REPORT'"
                             :class="eventCssClassMap[item.type]"
                             class="test-log-item"

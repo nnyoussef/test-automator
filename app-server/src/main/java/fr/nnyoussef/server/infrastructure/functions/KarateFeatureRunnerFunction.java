@@ -3,7 +3,6 @@ package fr.nnyoussef.server.infrastructure.functions;
 import com.google.common.collect.ImmutableMap;
 import com.intuit.karate.Runner;
 import com.intuit.karate.Runner.Builder;
-import com.intuit.karate.core.Feature;
 import fr.nnyoussef.server.core.domain.UiRenderingRequest;
 import fr.nnyoussef.server.infrastructure.functions.karaterunnerhook.FeatureRunnerPerfHook;
 import fr.nnyoussef.server.web.response.FeatureRunnerRequestBody;
@@ -16,15 +15,14 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static fr.nnyoussef.server.core.common.MapUtils.deepCopyJsMap;
+import static fr.nnyoussef.server.core.common.MapUtils.deepCopyMap;
 import static fr.nnyoussef.server.core.domain.enums.FeatureRunnerContextVariables.*;
-import static fr.nnyoussef.server.core.domain.enums.TestResultsEvent.HTML_REPORT;
-import static fr.nnyoussef.server.core.domain.enums.TestResultsEvent.PROGRESS_EVENT;
+import static fr.nnyoussef.server.core.domain.enums.TestResultsEvent.*;
 import static fr.nnyoussef.server.infrastructure.common.ServerSentFactory.createSse;
 import static java.util.UUID.randomUUID;
 import static reactor.core.scheduler.Schedulers.boundedElastic;
@@ -35,9 +33,16 @@ public final class KarateFeatureRunnerFunction
         extends BaseFunction
         implements Function<FeatureRunnerRequestBody, Flux<ServerSentEvent<String>>> {
 
-    private static final String TEST_END_EVENT_MESSAGE_FORMAT = "%d Passed | %d Failed. Executed in %s";
-
     private final UiRenderFunction uiRenderFunction;
+    private static final Builder<?> BUILDER = Runner.builder()
+            .outputHtmlReport(false)
+            .outputJunitXml(false)
+            .outputCucumberJson(false)
+            .reportDir(null)
+            .buildDir(null)
+            .backupReportDir(false)
+            .configDir(null)
+            .suiteReports(null);
 
     public KarateFeatureRunnerFunction(BeanFactory beanFactory,
                                        UiRenderFunction uiRenderFunction) {
@@ -57,7 +62,7 @@ public final class KarateFeatureRunnerFunction
 
             BiConsumer<String, Map<String, Object>> render = (templateName, variables) -> {
 
-                Map<String, Object> variablesHashMap = deepCopyJsMap(variables);
+                Map<String, Object> variablesHashMap = deepCopyMap(variables);//important because the variables is attached to js context that doesnt allow multi thread creation like boundedElastic
                 String renderingUuid = randomUUID().toString();
                 UiRenderingRequest uiRenderingRequest = new UiRenderingRequest(templateName, variablesHashMap);
                 Mono<ServerSentEvent<String>> uiJob = uiRenderFunction.apply(uiRenderingRequest, renderingUuid)
@@ -71,30 +76,20 @@ public final class KarateFeatureRunnerFunction
                 featureRunnerPerfHook.addJob(uiJob);
             };
 
-            Consumer<String> progressPublisher = message -> {
-                ServerSentEvent<String> progressEvent = createSse(PROGRESS_EVENT, randomUUID().toString(), message);
+            BiConsumer<String, Integer> progressPublisher = (message, percent) -> {
+                ServerSentEvent<String> progressEvent = createSse(PROGRESS_EVENT_MESSAGE, randomUUID().toString(), message);
+                ServerSentEvent<String> progressPercent = createSse(PROGRESS_EVENT_PERCENTAGE, randomUUID().toString(), percent.toString());
                 sink.next(progressEvent);
+                sink.next(progressPercent);
             };
-
-            Builder<?> builder = Runner.builder()
-                    .features(Feature.read(featurePath))
-                    .outputHtmlReport(false)
-                    .outputJunitXml(false)
-                    .outputCucumberJson(false)
-                    .reportDir(null)
-                    .buildDir(null)
-                    .backupReportDir(false)
-                    .configDir(null)
-                    .suiteReports(null)
-                    .debugMode(false);
 
             ImmutableMap.Builder<@NonNull String, @NonNull Object> variables = ImmutableMap.builder();
             variables.put(ID.getVariableName(), uuid);
             variables.put(RENDER.getVariableName(), render);
             variables.put(PROGRESS_PUBLISHER.getVariableName(), progressPublisher);
             variables.put(TEST_CONTEXT.getVariableName(), testParams);
-
-            Runner.callAsync(builder, featurePath, variables.build(), featureRunnerPerfHook);
+            variables.put(DATA_HOLDER.getVariableName(), new HashMap<>());
+            Runner.callAsync(BUILDER, featurePath, variables.build(), featureRunnerPerfHook);
 
         });
     }

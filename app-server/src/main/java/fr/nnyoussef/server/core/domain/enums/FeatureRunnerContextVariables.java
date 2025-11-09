@@ -6,6 +6,7 @@ public enum FeatureRunnerContextVariables {
     PROGRESS_PUBLISHER("progressPublisher"),
     BASE_DIR("baseDir"),
     TEST_CONTEXT("testContext"),
+    DATA_HOLDER("dataHolder"),
     ;
     private final String variableName;
 

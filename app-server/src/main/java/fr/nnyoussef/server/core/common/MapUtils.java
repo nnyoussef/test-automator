@@ -12,14 +12,14 @@ public final class MapUtils {
     }
 
 
-    public static Map<String, Object> deepCopyJsMap(Map<String, Object> jsMap) {
+    public static Map<String, Object> deepCopyMap(Map<String, Object> jsMap) {
         Map<String, Object> javaMap = new HashMap<>();
         for (Map.Entry<String, Object> entry : jsMap.entrySet()) {
             Object value = entry.getValue();
             if (value instanceof Map) {
-                javaMap.put(entry.getKey(), deepCopyJsMap((Map<String, Object>) value));
+                javaMap.put(entry.getKey(), deepCopyMap((Map<String, Object>) value));
             } else if (value instanceof List) {
-                javaMap.put(entry.getKey(), deepCopyJsList((List<Object>) value));
+                javaMap.put(entry.getKey(), deepCopyList((List<Object>) value));
             } else {
                 javaMap.put(entry.getKey(), value); // primitive or String
             }
@@ -27,13 +27,13 @@ public final class MapUtils {
         return javaMap;
     }
 
-    public static List<Object> deepCopyJsList(List<Object> jsList) {
+    public static List<Object> deepCopyList(List<Object> jsList) {
         List<Object> javaList = new LinkedList<>();
         for (Object item : jsList) {
             if (item instanceof Map) {
-                javaList.add(deepCopyJsMap((Map<String, Object>) item));
+                javaList.add(deepCopyMap((Map<String, Object>) item));
             } else if (item instanceof List) {
-                javaList.add(deepCopyJsList((List<Object>) item));
+                javaList.add(deepCopyList((List<Object>) item));
             } else {
                 javaList.add(item); // primitive or String
             }

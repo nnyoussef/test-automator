@@ -9,7 +9,9 @@ import reactor.util.context.ContextView;
 
 @Service
 @Lazy
-public final class RegisterForTestRunnerContextAwareConsumer extends BaseFunction implements ContextAwareConsumer<FeatureRunnerRequestBody> {
+public final class RegisterForTestRunnerContextAwareConsumer
+        extends BaseFunction
+        implements ContextAwareConsumer<FeatureRunnerRequestBody> {
 
     public RegisterForTestRunnerContextAwareConsumer(BeanFactory beanFactory) {
         super(beanFactory);

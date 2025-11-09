@@ -4,6 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.thymeleaf.spring6.SpringWebFluxTemplateEngine;
 
 @Component
 public class BaseFunction {
@@ -59,5 +60,9 @@ public class BaseFunction {
 
     public Cache<String, Object> getCache() {
         return beanFactory.getBean(Cache.class);
+    }
+
+    public SpringWebFluxTemplateEngine getSpringWebFluxTemplateEngine() {
+        return beanFactory.getBean(SpringWebFluxTemplateEngine.class);
     }
 }

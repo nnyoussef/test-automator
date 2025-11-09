@@ -2,13 +2,13 @@ package fr.nnyoussef.server.infrastructure.functions;
 
 import fr.nnyoussef.server.core.domain.UiRenderingRequest;
 import org.reactivestreams.Publisher;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
-import org.thymeleaf.spring6.SpringWebFluxTemplateEngine;
 import reactor.core.publisher.Mono;
 
 import java.nio.file.Path;
@@ -21,18 +21,14 @@ import static java.nio.file.StandardOpenOption.*;
 import static org.springframework.http.MediaType.TEXT_HTML;
 
 @Service
-public class UiRenderFunction implements BiFunction<UiRenderingRequest, String, Mono<String>> {
-
-    @Value("${resourcedir}")
-    private String resDir;
-
-    private final SpringWebFluxTemplateEngine templateEngine;
+@Lazy
+public final class UiRenderFunction extends BaseFunction implements BiFunction<UiRenderingRequest, String, Mono<String>> {
 
     private static final DefaultDataBufferFactory DEFAULT_DATA_BUFFER_FACTORY = new DefaultDataBufferFactory(true, 208_896);//204KB
     private static final String OUTPUT_FILE_NAME_FORMAT = "output/%s.html";
 
-    public UiRenderFunction(SpringWebFluxTemplateEngine templateEngine) {
-        this.templateEngine = templateEngine;
+    public UiRenderFunction(BeanFactory beanFactory) {
+        super(beanFactory);
     }
 
     @Override
@@ -42,11 +38,11 @@ public class UiRenderFunction implements BiFunction<UiRenderingRequest, String, 
         Context context = new Context(Locale.getDefault(), uiRenderingRequest.variables());
 
         String fileName = OUTPUT_FILE_NAME_FORMAT.formatted(outputId);
-        Path outputPath = of(resDir, fileName);
+        Path outputPath = of(getResDir(), fileName);
 
-        templateEngine.clearTemplateCacheFor(templateName);
+        getSpringWebFluxTemplateEngine().clearTemplateCacheFor(templateName);
 
-        Publisher<DataBuffer> dataBufferPublisher = templateEngine.processStream(
+        Publisher<DataBuffer> dataBufferPublisher = getSpringWebFluxTemplateEngine().processStream(
                 templateName,
                 null,
                 context,

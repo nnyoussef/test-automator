@@ -19,6 +19,8 @@ Feature: Test N01
     Given url 'https://jsonplaceholder.typicode.com/posts/'
     When method get
     Then status 200
+    * progressPublisher.accept('Posts Fetched',40)
+
     * def posts = group(response,'userId')
 
     Given url 'https://jsonplaceholder.typicode.com/users'
@@ -26,4 +28,7 @@ Feature: Test N01
     Then status 200
     * def users = group(response,'id')
     * def uiVars = {posts:  '#(posts)', users: '#(users)' , testContext: '#(testContext)' }
+    * progressPublisher.accept('Users Fetched',40)
+
+    * progressPublisher.accept('Creating application interface`',95)
     * render.accept('users',uiVars)
