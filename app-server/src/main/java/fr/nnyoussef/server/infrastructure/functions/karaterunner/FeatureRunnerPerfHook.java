@@ -18,7 +18,7 @@ import static fr.nnyoussef.server.infrastructure.common.ServerSentFactory.create
 import static java.lang.String.format;
 import static org.apache.commons.lang3.time.DurationFormatUtils.formatDuration;
 
-public class FeatureRunnerPerfHook implements PerfHook {
+public final class FeatureRunnerPerfHook implements PerfHook {
 
     private final FluxSink<ServerSentEvent<String>> sink;
     private final List<Mono<?>> jobs = new LinkedList<>();
