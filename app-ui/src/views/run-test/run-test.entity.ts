@@ -1,7 +1,6 @@
 import type { KeyValueMap } from '@/common/types';
 
 type TestMetaData = {
-    directory: string;
     name: string;
     path: string;
 };

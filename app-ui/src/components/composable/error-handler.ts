@@ -1,20 +1,27 @@
 import { onErrorCaptured } from 'vue';
 import { useRouter } from 'vue-router';
 
-function routeToErrorViewer(err: unknown, instance: any, info: string) {
+function routeToErrorViewer(error: unknown, instance: unknown, info: string): void {
+    // @ts-ignore
     useRouter()
         .getRoutes()
-        .find((r) => r.path === '/error')!.meta = { err, file: instance?.$.type.__file, info };
+
+        .find((routerRecord) => routerRecord.path === '/error')!.meta = {
+        error,
+         
+        file: instance?.$.type.__file,
+        info,
+    };
     useRouter()
         .push({ path: '/error' })
-        .then((_) => {
-            // Optionally handle the promise resolution or rejection
+        .then((navigationFailure) => {
+            return navigationFailure;
         });
 }
 
-function useErrorHandler() {
-    onErrorCaptured((err, instance, info) => {
-        routeToErrorViewer(err, instance, info);
+function useErrorHandler(): void {
+    onErrorCaptured((error, instance: unknown, info) => {
+        routeToErrorViewer(error, instance, info);
     });
 }
 

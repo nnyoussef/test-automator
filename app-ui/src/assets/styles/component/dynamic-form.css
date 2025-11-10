@@ -3,13 +3,13 @@
     flex-direction: column;
     height: 100%;
     contain: strict;
-    gap: var(--element-gap);
+    gap: var(--containers-gap);
     margin-left: var(--element-gap);
     & .section-list-container {
         max-height: calc(100% - 50px);
         overflow: auto;
         contain: layout;
-        gap: var(--element-gap);
+        gap: var(--containers-gap);
     }
 
     & .section-list-container > section {

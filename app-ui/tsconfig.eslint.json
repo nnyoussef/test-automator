@@ -1,5 +1,5 @@
 {
-  "extends": "./tsconfig.json",
-  "include": ["src/**/*.ts", "src/**/*.vue"], // adjust paths to match your project
-  "exclude": ["node_modules", "dist", "eslint.config.js","env.d.ts","vite.config.ts"]
+    "extends": "./tsconfig.json",
+    "include": ["src/**/*.ts", "src/**/*.vue"], // adjust paths to match your project
+    "exclude": ["node_modules", "dist", "eslint.config.js", "env.d.ts", "vite.config.ts"]
 }

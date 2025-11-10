@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import { defineAsyncComponent, inject, onMounted, onUnmounted, ref, shallowRef } from 'vue';
-import Panel from '@/components/containers/Panel.vue';
+import PanelView from '@/components/containers/PanelView.vue';
 import FileSelectorList from '@/components/interactive/FileSelectorList.vue';
 import IconButton from '@/components/interactive/IconButton.vue';
-import { type AppEvents, AppEventsInjectionKey } from '@/views/app.events.ts';
+import { type AppEvents, APP_EVENTS_INJECTION_KEY } from '@/views/app.events.ts';
 import { createRunTestInputProtocol } from '@/views/run-test/run-test.interactor.ts';
 import { type TestMetaDataViewModel } from '@/views/run-test/run-test.protocol.ts';
 import type { KeyValueMap } from '@/common/types';
@@ -14,8 +14,9 @@ import HorizontalBox from '@/components/layouts/HorizontalBox.vue';
 import { download } from '@/common/download.ts';
 import type { FileProps } from '@/components/interactive';
 import type { EventReporterType } from '@/common/base-output-protocole.ts';
+import { AxiosError } from 'axios';
 
-const appEvents = inject(AppEventsInjectionKey) as AppEvents;
+const appEvents = inject(APP_EVENTS_INJECTION_KEY) as AppEvents;
 const inputProtocol = createRunTestInputProtocol();
 useErrorHandler();
 
@@ -111,8 +112,10 @@ function downloadDocumentation(isDirectory = false) {
         'docs',
         'pdf',
         isDirectory ? directory || 'root' : fileName,
-        downloadSuccess,
-        downloadFailure,
+        {
+            successHandler: downloadSuccess,
+            errorHandler: downloadFailure,
+        },
     );
 }
 
@@ -124,10 +127,10 @@ function downloadSuccess() {
     });
 }
 
-function downloadFailure(error: any) {
+function downloadFailure(error: AxiosError) {
     downloadButtonDisabled.value = false;
     appEvents.POPUP.next({
-        message: `Error while downloading documentation : ${error}`,
+        message: `Error ${error.code} while downloading documentation : ${error.cause}`,
         type: 'error',
     });
 }
@@ -171,7 +174,7 @@ onUnmounted(() => inputProtocol.destroy());
 
 <template>
     <HorizontalBox id="run-test">
-        <Panel id="test-explorer-panel">
+        <PanelView id="test-explorer-panel">
             <template #title>
                 <div>Test Explorer</div>
                 <IconButton
@@ -201,8 +204,8 @@ onUnmounted(() => inputProtocol.destroy());
                     @itemSelected="handleTestSelected"
                 />
             </template>
-        </Panel>
-        <Panel id="test-explorer-configuration-panel">
+        </PanelView>
+        <PanelView id="test-explorer-configuration-panel">
             <template #title v-if="!isDirectorySelected">
                 {{ selectedTest?.name }}
                 <IconButton
@@ -240,7 +243,7 @@ onUnmounted(() => inputProtocol.destroy());
                     </LazyRenderableView>
                 </div>
             </template>
-        </Panel>
+        </PanelView>
     </HorizontalBox>
 </template>
 

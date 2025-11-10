@@ -111,7 +111,7 @@ type TestLogHistoryViewModel = Readonly<{
 }>;
 
 type TestLogPropertiesViewModel = Readonly<TestLogRecord>;
-type TestLogsEventsViewModel = Readonly<TestLogsEvent[]>;
+type TestLogsEventsViewModel = readonly TestLogsEvent[];
 
 export type {
     TestLogsInputProtocol,

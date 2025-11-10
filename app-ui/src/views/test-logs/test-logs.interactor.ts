@@ -28,7 +28,7 @@ class TestLogsInteractor
     startListeningToTestLogs(preProcessing: () => void, uuid?: string): void {
         let hasPreProcessed = false;
 
-        const handleEvents = (events: TestLogsEvent[]) => {
+        const handleEvents = (events: TestLogsEvent[]): void => {
             if (!hasPreProcessed) {
                 preProcessing();
                 hasPreProcessed = true;
@@ -48,6 +48,7 @@ class TestLogsInteractor
     checkIfStreamIsFromServer(uuid: string): void {
         const testLog = this.getTestLogsState().getTestLogsByUuid(uuid);
         const isStreamFromServer =
+             
             !!testLog && testLog.eventSource?.readyState !== EventSource.CLOSED;
         this.outputProtocol?.onStreamSourceChecked(isStreamFromServer);
     }

@@ -22,7 +22,7 @@ const router = createRouter({
         },
         {
             path: '/help',
-            component: () => import('@/views/help/help.vue'),
+            component: () => import('@/views/help/help-viewer.vue'),
             meta: { tabIndex: 2 },
         },
         {

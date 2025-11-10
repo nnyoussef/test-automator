@@ -14,7 +14,7 @@ import java.util.List;
 
 import static fr.nnyoussef.server.core.domain.enums.FeatureRunnerContextVariables.ID;
 import static fr.nnyoussef.server.core.domain.enums.TestResultsEvent.TEST_END;
-import static fr.nnyoussef.server.infrastructure.common.ServerSentFactory.createSse;
+import static fr.nnyoussef.server.infrastructure.common.ServerSentEventFactory.createSse;
 import static java.lang.String.format;
 import static org.apache.commons.lang3.time.DurationFormatUtils.formatDuration;
 

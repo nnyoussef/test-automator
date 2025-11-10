@@ -1,56 +1,76 @@
+// eslint.config.js
 import vuePlugin from 'eslint-plugin-vue';
+import promisePlugin from 'eslint-plugin-promise';
+import securityPlugin from 'eslint-plugin-security';
+import prettier from 'eslint-config-prettier';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
-import prettierPlugin from 'eslint-plugin-prettier';
 import tsParser from '@typescript-eslint/parser';
+import vueParser from 'vue-eslint-parser';
 
 export default [
-  {
-    ignores: [
-      'node_modules/**',
-      'dist/**',
-      'eslint.config.js', // ← ignore this file
-      './env',
-    ],
-  },
-  {
-    files: ['*.vue', '*.ts', '*.js'],
-    languageOptions: {
-      parser: tsParser,
-      parserOptions: {
-        ecmaVersion: 2020,
-        sourceType: 'module',
-        project: './tsconfig.eslint.json',
-      },
+    // Ignore everything outside src
+    {
+        ignores: ['dist/**', 'node_modules/**', 'eslint.config.js', '.eslintrc.cjs'],
     },
-    plugins: {
-      vue: vuePlugin,
-      '@typescript-eslint': tsPlugin,
-      prettier: prettierPlugin,
+
+    // JS and TS files
+    {
+        files: ['src/**/*.{js,ts}'],
+        languageOptions: {
+            parser: tsParser,
+            parserOptions: {
+                ecmaVersion: 'latest',
+                sourceType: 'module',
+            },
+        },
+        plugins: {
+            '@typescript-eslint': tsPlugin,
+            promise: promisePlugin,
+            security: securityPlugin,
+        },
+        rules: {
+            // General code quality
+            'no-console': 'warn',
+            'no-var': 'error',
+            'prefer-const': 'error',
+            eqeqeq: ['error', 'always'],
+            curly: ['error', 'all'],
+            complexity: ['warn', 10],
+            'max-params': ['warn', 5],
+            'max-statements': ['warn', 40],
+
+            // TypeScript
+            '@typescript-eslint/no-explicit-any': 'warn',
+            '@typescript-eslint/explicit-function-return-type': 'off',
+            '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
+
+            // Promise & Security
+            'promise/always-return': 'error',
+            'security/detect-object-injection': 'error',
+        },
     },
-    rules: {
-      // ESLint recommended
-      'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-      'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-      'no-unused-vars': 'error',
 
-      // Vue recommended + strict
-      'vue/multi-word-component-names': 'error',
-      'vue/no-v-html': 'error',
-      'vue/no-mutating-props': 'error',
-      'vue/require-default-prop': 'error',
-
-      // TypeScript recommended + strict
-      '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/strict-boolean-expressions': 'error',
-      '@typescript-eslint/no-floating-promises': 'error',
-      '@typescript-eslint/no-misused-promises': 'error',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      '@typescript-eslint/no-non-null-assertion': 'error',
-      '@typescript-eslint/explicit-function-return-type': ['error', { allowExpressions: true }],
-      '@typescript-eslint/consistent-type-imports': 'error',
-
-      // Prettier integration (errors on prettier formatting issues)
-      'prettier/prettier': 'error',
+    // Vue files
+    {
+        files: ['src/**/*.vue'],
+        languageOptions: {
+            parser: vueParser,
+            parserOptions: {
+                parser: tsParser, // for <script lang="ts">
+                ecmaVersion: 'latest',
+                sourceType: 'module',
+            },
+        },
+        plugins: { vue: vuePlugin },
+        rules: {
+            'vue/multi-word-component-names': 'error',
+            'vue/html-self-closing': [
+                'error',
+                { html: { void: 'always', normal: 'always', component: 'always' } },
+            ],
+        },
     },
-  },
+
+    // Prettier overrides
+    prettier,
 ];

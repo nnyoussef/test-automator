@@ -1,12 +1,15 @@
 import { Axios as axios } from 'axios-observable';
+import type { AxiosError } from 'axios';
 
 export function download(
     filePath: string,
     category: 'docs' | 'forms' | 'output',
     fileExtension?: string,
     outputFileName: string = 'downloaded-file',
-    successHandler?: () => void,
-    errorHandler?: (error: any) => void,
+    handlers?: {
+        successHandler?: () => void;
+        errorHandler?: (error: AxiosError) => void;
+    },
 ) {
     const fullEndPoint = `/resources/info/download/${filePath}`;
     axios
@@ -24,8 +27,8 @@ export function download(
                 link.click();
                 link.remove();
                 globalThis.URL.revokeObjectURL(link.href);
-                successHandler?.();
+                handlers?.successHandler?.();
             },
-            error: errorHandler,
+            error: handlers?.errorHandler,
         });
 }

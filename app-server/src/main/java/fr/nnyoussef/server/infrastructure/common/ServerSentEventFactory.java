@@ -3,8 +3,8 @@ package fr.nnyoussef.server.infrastructure.common;
 import fr.nnyoussef.server.core.domain.enums.TestResultsEvent;
 import org.springframework.http.codec.ServerSentEvent;
 
-public final class ServerSentFactory {
-    private ServerSentFactory() throws IllegalAccessException {
+public final class ServerSentEventFactory {
+    private ServerSentEventFactory() throws IllegalAccessException {
         throw new IllegalAccessException();
     }
 

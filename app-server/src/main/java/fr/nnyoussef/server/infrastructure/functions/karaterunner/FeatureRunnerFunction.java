@@ -21,11 +21,13 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static fr.nnyoussef.server.core.domain.enums.FeatureRunnerContextVariables.*;
-import static fr.nnyoussef.server.infrastructure.common.ServerSentFactory.createSse;
+import static fr.nnyoussef.server.infrastructure.common.ServerSentEventFactory.createSse;
+import static java.nio.file.Path.of;
 import static java.util.UUID.randomUUID;
 
 @Service
@@ -62,9 +64,8 @@ public final class FeatureRunnerFunction
                 ServerSentEvent<String> serverSentEvent = createSse(testResultsEvent, randomUUID().toString(), message);
                 sink.next(serverSentEvent);
             };
-
             Map<String, Object> testParams = featureRunnerRequestBody.testParams();
-            String featurePath = Path.of(getResDir(), "test-suites", featureRunnerRequestBody.path()).toString();
+            String featurePath = of(getResDir(), "test-suites", featureRunnerRequestBody.path()).toString();
             String uuid = sink.contextView().get(ID.getVariableName());
 
             ImmutableMap.Builder<@NonNull String, @NonNull Object> variables = ImmutableMap.builder();

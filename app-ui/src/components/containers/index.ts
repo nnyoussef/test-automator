@@ -1,5 +1,5 @@
 import type { AsyncComponentLoader } from '@vue/runtime-core';
-import type { CommonComponentAttribute } from '@/common/types.ts';
+import type { CommonComponentAttribute, MessageLevel } from '@/common/types.ts';
 
 interface ChipViewProps extends CommonComponentAttribute {
     text: string;
@@ -10,7 +10,6 @@ interface ChipViewProps extends CommonComponentAttribute {
 interface LazyRendererableProps {
     render: boolean;
     asyncRenderFunction?: AsyncComponentLoader;
-    asyncComponentData?: any;
 }
 
 interface DialogBoxWithDynamicContentProps {
@@ -19,7 +18,7 @@ interface DialogBoxWithDynamicContentProps {
 
 interface NoteCardViewProps {
     note?: string;
-    type: 'info' | 'warning' | 'error' | 'success';
+    type: MessageLevel;
     noteClass?: string;
 }
 
@@ -28,18 +27,14 @@ interface TooltipViewProps {
     tooltipShow: boolean;
 }
 
-interface WebViewerProps {
-    fileUrl: string;
-    title?: string;
-}
-
 interface ToastViewProps {
     to: string;
     duration?: number;
     limit?: number;
-    content: {
+    clearAll?: boolean;
+    content?: {
         message: string;
-        type: NoteCardViewProps['type'];
+        type: MessageLevel;
     };
 }
 

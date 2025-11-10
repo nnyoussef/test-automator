@@ -16,15 +16,16 @@ export const noop = new Proxy({} as ReadonlyKeyValueMap<Function>, {
  * It provides methods to manage entities, output protocols, and application configurations.
  * Subclasses must implement the getComponentName method to provide a unique identifier.
  *
- * @template OUT_PROTOCOL - The type of the output protocol.
+ * @template OutputProtocol - The type of the output protocol.
  * @template ENTITY - The type of the entity associated with the interactor.
  */
-export abstract class BaseInteractor<OUT_PROTOCOL, ENTITY> {
+export abstract class BaseInteractor<OutputProtocol, ENTITY> {
     protected constructor() {}
 
     private _entity: Optional<ENTITY> = null;
-    private _outputProtocol: Readonly<OUT_PROTOCOL> = noop as OUT_PROTOCOL;
-    private readonly _abortController: AbortController = new AbortController();
+    private _outputProtocol: Readonly<OutputProtocol> = noop as OutputProtocol;
+
+    private readonly _abortController = new AbortController();
     private readonly _appConfig: AppConfigs = appConfigs;
 
     /**
@@ -50,7 +51,7 @@ export abstract class BaseInteractor<OUT_PROTOCOL, ENTITY> {
      * Gets the output protocol associated with the interactor.
      * @throws UnsupportedOperationError if the output protocol is not set.
      */
-    get outputProtocol(): Readonly<OUT_PROTOCOL> {
+    get outputProtocol(): Readonly<OutputProtocol> {
         return this._outputProtocol;
     }
 
@@ -58,12 +59,12 @@ export abstract class BaseInteractor<OUT_PROTOCOL, ENTITY> {
      * Sets the output protocol for the interactor.
      * @param outputProtocol - The output protocol to set, or noop if not provided.
      */
-    set outputProtocol(outputProtocol: OUT_PROTOCOL) {
+    set outputProtocol(outputProtocol: OutputProtocol) {
         if (outputProtocol) {
             this._outputProtocol = outputProtocol;
             return;
         }
-        this._outputProtocol = noop as OUT_PROTOCOL;
+        this._outputProtocol = noop as OutputProtocol;
     }
 
     /**

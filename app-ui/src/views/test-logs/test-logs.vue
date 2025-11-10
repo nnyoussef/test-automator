@@ -9,12 +9,12 @@ import {
     triggerRef,
     useTemplateRef,
 } from 'vue';
-import Loader from '@/components/loading/Loader.vue';
+import LoaderView from '@/components/loading/LoaderView.vue';
 import VerticalBox from '@/components/layouts/VerticalBox.vue';
 import DialogView from '@/components/containers/DialogView.vue';
 import {
     type AppEvents,
-    AppEventsInjectionKey,
+    APP_EVENTS_INJECTION_KEY,
     type AppEventSourceType,
 } from '@/views/app.events.ts';
 import {
@@ -51,11 +51,13 @@ let selectedTestUuid: string;
 let chunkedTestLogs: { data: string; type: AppEventSourceType }[][] = [];
 let eventHandlerPaused = false;
 const testLogsInputInteractor = useTestLogsInteractor(<string>useRoute().query.uuid);
-const appEvents = inject<AppEvents>(AppEventsInjectionKey);
+const appEvents = inject<AppEvents>(APP_EVENTS_INJECTION_KEY);
 const logContainer = useTemplateRef<HTMLDivElement>('logContainer');
 const eventCssClassMap: Record<AppEventSourceType, string> = {
     HTML_REPORT: 'html-report',
     TEST_END: '',
+    PROGRESS_EVENT_MESSAGE: '',
+    PROGRESS_EVENT_PERCENTAGE: '',
 };
 let renderingAnimationFrameId: number;
 
@@ -227,7 +229,7 @@ onUnmounted(() => {
                 icon="info"
                 @click="onInfoButtonClicked"
             />
-            <Loader :inprogress="isStreamCurrentlyActive" />
+            <LoaderView :inprogress="isStreamCurrentlyActive" />
         </HorizontalBox>
         <LazyRenderableView :render="testLogsContainerIsLoaded">
             <div

@@ -46,6 +46,9 @@ interface SelectableItemsTableProps<T> {
     selectedValue: string;
     disableSelectRow?: boolean;
 }
+interface SelectableItemsTableEmits {
+    onSelected: [{ value: string; label: string }];
+}
 
 interface BreadCrumbProps extends CommonComponentAttribute {
     items: Array<{ label: string; value: string; iconName?: string; iconColor?: string }>;
@@ -59,4 +62,5 @@ export type {
     SelectableItemsTableProps,
     BreadCrumbProps,
     FileProps,
+    SelectableItemsTableEmits,
 };

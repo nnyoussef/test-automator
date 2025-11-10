@@ -2,6 +2,7 @@ import { Axios as axios, type AxiosObservable } from 'axios-observable';
 import { appConfigs } from '@/config';
 import { retry } from 'rxjs';
 import { ApiEndpointsConstants } from '@/common/constantes/api-endpoint-constants';
+import type { KeyValueMap } from '@/common/types.ts';
 
 type TestRegistrationToken = {
     token: string;
@@ -16,7 +17,7 @@ type TestRegistrationToken = {
 function registerForTestRunner(
     data: {
         path: string;
-        testParams: Record<string, any>;
+        testParams: KeyValueMap;
     },
     abortController: AbortController,
 ): AxiosObservable<TestRegistrationToken> {

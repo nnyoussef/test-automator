@@ -20,7 +20,7 @@ function getDynamicallyConfiguredFormEventsById(id: string) {
 function destroyDynamicallyConfiguredFormEvents(id: string) {
     const events = getDynamicallyConfiguredFormEventsById(id);
     if (events) {
-        Object.values(events).forEach((sub: Subject<any>) => {
+        Object.values(events).forEach((sub): void => {
             sub.unsubscribe();
         });
     }

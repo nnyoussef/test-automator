@@ -1,6 +1,6 @@
-export type EventReporterType = 'success' | 'info' | 'error' | 'warning';
+import type { MessageLevel } from '@/common/types.ts';
 
-export interface BaseOutputProtocole<T = EventReporterType> {
+export interface BaseOutputProtocole<T = MessageLevel> {
     /**
      * Reports an event to the output protocol.
      * @param message - The message to report.

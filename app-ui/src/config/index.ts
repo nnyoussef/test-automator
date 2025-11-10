@@ -35,12 +35,6 @@ axios.defaults.headers.common['Accept'] = 'application/json';
 
 requestIdleCallback(() => {
     if (!appConfigs.isLoggingEnabled) {
-        Object.keys(console).forEach((key) => {
-            //@ts-ignore
-            console[key] = () => {
-                // Disable console logging
-            };
-        });
         globalThis.alert = () => {
             // Disable alert dialogs
         };
@@ -48,14 +42,20 @@ requestIdleCallback(() => {
         globalThis.prompt = () => '';
     }
     if (import.meta.env.VITE_WEB_VITALS_ACTIVE === 'true') {
-        import('web-vitals').then((vitals) => {
+        import('web-vitals').then((vitals): void | null => {
             requestIdleCallback(() => {
+                // eslint-disable-next-line no-console
                 vitals.onCLS(console.log); // Cumulative Layout Shift
+                // eslint-disable-next-line no-console
                 vitals.onFCP(console.log); // First Input Delay
+                // eslint-disable-next-line no-console
                 vitals.onLCP(console.log); // Largest Contentful Paint
+                // eslint-disable-next-line no-console
                 vitals.onINP(console.log); // Input Delay
+                // eslint-disable-next-line no-console
                 vitals.onTTFB(console.log);
             });
+            return null;
         });
     }
 });

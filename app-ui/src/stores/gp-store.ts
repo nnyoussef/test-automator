@@ -7,16 +7,14 @@ export const useGpState = defineStore('gp', () => {
     const state = ref<KeyValueMap>({});
 
     // --- GETTERS ---
-    const getByKeys = (component: string, variableName = '', defaultValue: any = null) => {
+    const getByKeys = <T>(component: string, variableName: string, defaultValue: T) => {
         if (!state.value[component]) return defaultValue;
         return state.value[component][variableName] ?? defaultValue;
     };
 
     // --- ACTIONS ---
-    function putByKey(component: string, variableName: string, value: any) {
-        if (!state.value[component]) {
-            state.value[component] = {};
-        }
+    function putByKey(component: string, variableName: string, value: unknown): void {
+        state.value[component] ??= {};
         state.value[component][variableName] = value;
     }
 

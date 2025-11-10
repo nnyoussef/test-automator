@@ -33,7 +33,7 @@ interface TestLogEntity {
 }
 
 const createTestLogEntity: () => TestLogEntity = () => {
-    let selectedUuid: Optional<string> = undefined;
+    const selectedUuid: Optional<string> = undefined;
     const testLogsListener: Subscription = Subscription.EMPTY;
 
     return {

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
-import Loader from '@/components/loading/Loader.vue';
+import LoaderView from '@/components/loading/LoaderView.vue';
 import { useHelpInteractor } from '@/views/help/help-interactor.ts';
 import { useErrorHandler } from '@/components/composable/error-handler.ts';
 
@@ -29,7 +29,7 @@ helpInputInteractor.fetchHelpContent();
 </script>
 <template>
     <div class="content">
-        <Loader :inprogress="loading"></Loader>
+        <LoaderView :inprogress="loading"></LoaderView>
         <div v-memo="htmlContent" v-html="htmlContent"></div>
     </div>
 </template>

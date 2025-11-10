@@ -4,7 +4,7 @@ import type {
     SingleOrArray,
     TextOrNumber,
 } from '@/common/types';
-import { Subject } from 'rxjs';
+import type { Subject } from 'rxjs';
 import { type Component, defineAsyncComponent } from 'vue';
 
 type InputType = 'text' | 'number' | 'select' | 'file' | 'temporal';

@@ -87,7 +87,7 @@ class RunTestInteractor
     /** Registers a new test run with the provided parameters. */
     public registerForTestRunner(name: string, path: string, form: KeyValueMap): void {
         if (!this.isTestRunnerParamsValid(name, path, form)) {
-            this.outputProtocol.registerForTestRunnerFailure('Invalid parameters');
+            this.outputProtocol.registerForTestRunnerFailure();
             return;
         }
 
@@ -115,9 +115,9 @@ class RunTestInteractor
                         'info',
                     );
                 },
-                error: (err) => {
+                error: (error) => {
                     this.outputProtocol.registerForTestRunnerFailure();
-                    this.outputProtocol.eventReporter(err.message, 'error');
+                    this.outputProtocol.eventReporter(error.message, 'error');
                 },
             });
     }

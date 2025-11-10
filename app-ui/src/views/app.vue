@@ -2,12 +2,11 @@
 import { useRouter } from 'vue-router';
 import { onMounted, onUnmounted, provide, ref } from 'vue';
 import { createAppInteractor } from './app.interactor.ts';
-import { AppEventsInjectionKey, type AppEvents } from './app.events.ts';
+import { type AppEvents, APP_EVENTS_INJECTION_KEY } from './app.events.ts';
 import { useRequestAnimationFrame } from '@/components/composable/animation-frame.ts';
-import { HtmlAttributesConstants } from '@/common/constantes/html-constants.ts';
-import type { NoteCardViewProps } from '@/components/containers';
-import Toast from '@/components/containers/Toast.vue';
+import ToastView from '@/components/containers/ToastView.vue';
 import { Subject } from 'rxjs';
+import type { MessageLevel } from '@/common/types.ts';
 
 const appInteractor = createAppInteractor();
 
@@ -16,19 +15,21 @@ const appEvents: AppEvents = {
     POPUP: new Subject(),
 };
 
-provide(AppEventsInjectionKey, appEvents);
+provide(APP_EVENTS_INJECTION_KEY, appEvents);
 const router = useRouter();
-const popMessage = ref<{ type: NoteCardViewProps['type']; message: string }>();
+const popMessage = ref<{ type: MessageLevel; message: string }>();
+const clearAllPopup = ref(false);
 
 onMounted(() => {
     const tabContainer = document.getElementById('app-header-tab-container');
     const selectables = document.getElementsByClassName('tab');
-    let selectedTab: any;
+    let selectedTab: HTMLElement | undefined;
     const switchTabs = () => {
         const tabIndexOfCurrentRoute: number = <number>router.currentRoute.value.meta.tabIndex;
-        const targetTab = selectables.item(tabIndexOfCurrentRoute);
-        selectedTab?.setAttribute('data-selected', 'false');
-        targetTab?.setAttribute('data-selected', 'true');
+        const targetTab = selectables.item(tabIndexOfCurrentRoute) as HTMLElement;
+
+        selectedTab && (selectedTab.dataset.selected = 'false');
+        targetTab && (targetTab.dataset.selected = 'true');
         selectedTab = targetTab;
     };
 
@@ -39,12 +40,13 @@ onMounted(() => {
         'click',
         (e: MouseEvent) => {
             const clickedElement: HTMLElement = <HTMLElement>e.target;
-            if (clickedElement.hasAttribute(HtmlAttributesConstants.DATA_HREF)) {
-                const path = clickedElement.getAttribute(HtmlAttributesConstants.DATA_HREF) ?? '';
+            if (clickedElement.dataset.href) {
+                const path = clickedElement.dataset.href ?? '';
                 useRequestAnimationFrame(() => router.push({ path }));
-                selectedTab?.setAttribute(HtmlAttributesConstants.DATA_SELECTED, 'false');
+
+                selectedTab && (selectedTab.dataset.selected = 'false');
                 selectedTab = clickedElement;
-                clickedElement.setAttribute(HtmlAttributesConstants.DATA_SELECTED, 'true');
+                clickedElement.dataset.selected = 'true';
             }
         },
         { signal: appInteractor.abortSignal },
@@ -62,6 +64,7 @@ onMounted(() => {
     });
 
     appEvents.POPUP.subscribe((event) => {
+        clearAllPopup.value = event.clearAllBefore ?? false;
         popMessage.value = { type: event.type, message: event.message };
     });
 });
@@ -72,7 +75,13 @@ onUnmounted(() => {
 
 <template>
     <div class="inflexible-container" style="height: 100%">
-        <Toast :content="popMessage" to="#app-popups" :duration="5000" :limit="5" />
+        <ToastView
+            :clearAll="clearAllPopup"
+            :content="popMessage"
+            to="#app-popups"
+            :duration="5000"
+            :limit="5"
+        />
         <RouterView />
     </div>
 </template>
