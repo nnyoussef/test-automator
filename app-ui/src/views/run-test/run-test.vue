@@ -6,14 +6,13 @@ import IconButton from '@/components/interactive/IconButton.vue';
 import { type AppEvents, APP_EVENTS_INJECTION_KEY } from '@/views/app.events.ts';
 import { createRunTestInputProtocol } from '@/views/run-test/run-test.interactor.ts';
 import { type TestMetaDataViewModel } from '@/views/run-test/run-test.protocol.ts';
-import type { KeyValueMap } from '@/common/types';
+import type { KeyValueMap, MessageLevel } from '@/common/types';
 import { useRequestAnimationFrame } from '@/components/composable/animation-frame.ts';
 import { useErrorHandler } from '@/components/composable/error-handler.ts';
 import LazyRenderableView from '@/components/containers/LazyRenderableView.vue';
 import HorizontalBox from '@/components/layouts/HorizontalBox.vue';
 import { download } from '@/common/download.ts';
 import type { FileProps } from '@/components/interactive';
-import type { EventReporterType } from '@/common/base-output-protocole.ts';
 import { AxiosError } from 'axios';
 
 const appEvents = inject(APP_EVENTS_INJECTION_KEY) as AppEvents;
@@ -143,7 +142,7 @@ function lastSelectedTestPathRetrieved(lastSelectedPath: {
     selectedTest.value = lastSelectedPath;
 }
 
-function eventReporter(message: string, eventType: EventReporterType) {
+function eventReporter(message: string, eventType: MessageLevel) {
     refreshButtonDisabled.value = false;
     appEvents.POPUP.next({
         type: eventType,
