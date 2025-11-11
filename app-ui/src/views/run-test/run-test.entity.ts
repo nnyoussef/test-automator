@@ -3,6 +3,7 @@ import type { KeyValueMap } from '@/common/types';
 type TestMetaData = {
     name: string;
     path: string;
+    directory?: string;
 };
 
 interface TestEntity {

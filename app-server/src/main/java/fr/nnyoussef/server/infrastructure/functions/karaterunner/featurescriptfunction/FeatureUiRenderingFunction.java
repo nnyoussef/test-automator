@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import static fr.nnyoussef.server.core.common.MapUtils.deepCopyMap;
+import static fr.nnyoussef.server.infrastructure.common.MapUtils.deepCopyMap;
 import static fr.nnyoussef.server.core.domain.enums.TestResultsEvent.HTML_REPORT;
 import static java.util.UUID.randomUUID;
 import static reactor.core.scheduler.Schedulers.boundedElastic;

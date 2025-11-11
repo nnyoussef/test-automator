@@ -1,4 +1,4 @@
-package fr.nnyoussef.server.core.common;
+package fr.nnyoussef.server.infrastructure.common;
 
 import java.util.HashMap;
 import java.util.LinkedList;
