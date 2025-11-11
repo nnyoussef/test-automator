@@ -113,6 +113,15 @@ type TestLogHistoryViewModel = Readonly<{
 type TestLogPropertiesViewModel = Readonly<TestLogRecord>;
 type TestLogsEventsViewModel = readonly TestLogsEvent[];
 
+export enum AppEventSourceEnum {
+    TEST_END,
+    HTML_REPORT,
+    PROGRESS_EVENT_MESSAGE,
+    PROGRESS_EVENT_PERCENTAGE,
+}
+
+export type AppEventSourceType = keyof typeof AppEventSourceEnum;
+
 export type {
     TestLogsInputProtocol,
     TestLogsOutputProtocol,

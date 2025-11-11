@@ -9,6 +9,9 @@ import type {
     RunTestInteractorOutputProtocol,
 } from '@/views/run-test/run-test.protocol.ts';
 import type { KeyValueMap } from '@/common/types';
+import type { FormControl, FormControlDataType } from '@/components/dynamic-form';
+import type { Error } from '../../../neutralino';
+import { AppEventSourceEnum, type AppEventSourceType } from '../test-logs/test-logs.protocol.ts';
 
 /**
  * Interactor responsible for managing test execution and related metadata.
@@ -144,6 +147,28 @@ class RunTestInteractor
         this.outputProtocol.lastSelectedTestPathRetrieved(this.entity.getLastSelectedTestPath());
     }
 
+    startTestRunner(uuid: string): void {
+        const url = `${this.getAppConfigs().apiProperties.url}/test/run-test?uuid=${uuid}`;
+        const eventSource = new EventSource(url);
+        this.getTestLogsState().registerEventSource(uuid, eventSource);
+        eventSource.onerror = () => {
+            this.getTestLogsState().testLogsForUuidComplete(uuid);
+            this.outputProtocol.eventReporter('Test run failed', 'error');
+        };
+
+        this.getTestLogsState().setLastCreatedUuidTo(uuid);
+
+        const eventPublisher = (ev: MessageEvent, eventName: AppEventSourceType) => {
+            const dataToTransmit = { uuid, data: ev.data, type: eventName };
+            this.getTestLogsState().putTestLogInHistoryWithUuid(dataToTransmit, uuid);
+        };
+
+        for (const type of Object.values(AppEventSourceEnum)) {
+            const typeString = <AppEventSourceType>type;
+            eventSource.addEventListener(typeString, (event) => eventPublisher(event, typeString));
+        }
+    }
+
     /** Cleans up persistent state and aborts any ongoing operations. */
     public destroy(): void {
         this.saveToGpStateStore(
@@ -158,7 +183,6 @@ class RunTestInteractor
     }
 
     // --- Protected Methods ---
-
     protected initEntity(): TestEntity {
         const entity = createRunTestEntity();
 
@@ -192,7 +216,9 @@ class RunTestInteractor
     }
 
     /** Formats raw form data into test parameters. */
-    private formatTestParams(form: KeyValueMap): KeyValueMap<string> {
+    private formatTestParams(
+        form: KeyValueMap<FormControl<FormControlDataType>>,
+    ): KeyValueMap<string> {
         const params: KeyValueMap<string> = {};
         for (const [key, value] of Object.entries(form)) {
             params[key] = toRaw(toRaw(value).data);

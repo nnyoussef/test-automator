@@ -47,6 +47,12 @@ interface RunTestInteractorInputProtocol {
      * @returns An object containing the name and path of the last selected test, or null if none is set.
      */
     getLastSelectedTestPath(): void;
+
+    /**
+     * Starts a test runner with the given UUID.
+     * @param uuid - The UUID of the test runner to start.
+     */
+    startTestRunner(uuid: string): void;
 }
 
 // Protocols for the Run Test Interactor Output
@@ -87,6 +93,10 @@ interface RunTestInteractorOutputProtocol extends BaseOutputProtocole {
      */
     testConfigurationForPathRefreshed(data: KeyValueMap): void;
 
+    /**
+     * Called when the last selected test path is set.
+     * @param data - The last selected test path.
+     */
     lastSelectedTestPathRetrieved(data: { name: string; path: string } | null): void;
 }
 

@@ -3,7 +3,7 @@ import { defineAsyncComponent, inject, onMounted, onUnmounted, ref, shallowRef }
 import PanelView from '@/components/containers/PanelView.vue';
 import FileSelectorList from '@/components/interactive/FileSelectorList.vue';
 import IconButton from '@/components/interactive/IconButton.vue';
-import { type AppEvents, APP_EVENTS_INJECTION_KEY } from '@/views/app.events.ts';
+import { APP_EVENTS_INJECTION_KEY, type AppEvents } from '@/views/app.events.ts';
 import { createRunTestInputProtocol } from '@/views/run-test/run-test.interactor.ts';
 import { type TestMetaDataViewModel } from '@/views/run-test/run-test.protocol.ts';
 import type { KeyValueMap, MessageLevel } from '@/common/types';
@@ -14,10 +14,12 @@ import HorizontalBox from '@/components/layouts/HorizontalBox.vue';
 import { download } from '@/common/download.ts';
 import type { FileProps } from '@/components/interactive';
 import { AxiosError } from 'axios';
+import { useRouter } from 'vue-router';
 
 const appEvents = inject(APP_EVENTS_INJECTION_KEY) as AppEvents;
 const inputProtocol = createRunTestInputProtocol();
 useErrorHandler();
+const router = useRouter();
 
 const testsAvailable = shallowRef<TestMetaDataViewModel[]>([]);
 const testExplorerRefreshLoader = ref(false);
@@ -70,7 +72,9 @@ function handleRegisterForTestRunnerFailure() {
 
 function handleRegisterForTestRunnerSuccess(uuid: string) {
     refreshButtonDisabled.value = false;
-    appEvents.RUN_TEST.next(uuid);
+    router
+        .push({ path: '/test-logs', query: { uuid } })
+        .then(() => inputProtocol.startTestRunner(uuid));
 }
 
 function handleTestConfigurationForPathRefreshed(data: KeyValueMap) {

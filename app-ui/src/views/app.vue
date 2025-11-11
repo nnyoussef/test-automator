@@ -1,17 +1,13 @@
 <script lang="ts" setup>
 import { useRouter } from 'vue-router';
-import { onMounted, onUnmounted, provide, ref } from 'vue';
-import { createAppInteractor } from './app.interactor.ts';
-import { type AppEvents, APP_EVENTS_INJECTION_KEY } from './app.events.ts';
+import { onMounted, provide, ref } from 'vue';
+import { APP_EVENTS_INJECTION_KEY, type AppEvents } from './app.events.ts';
 import { useRequestAnimationFrame } from '@/components/composable/animation-frame.ts';
 import ToastView from '@/components/containers/ToastView.vue';
 import { Subject } from 'rxjs';
 import type { MessageLevel } from '@/common/types.ts';
 
-const appInteractor = createAppInteractor();
-
 const appEvents: AppEvents = {
-    RUN_TEST: new Subject<string>(),
     POPUP: new Subject(),
 };
 
@@ -36,40 +32,22 @@ onMounted(() => {
     router.isReady().then(() => switchTabs());
     router.afterEach(() => switchTabs());
 
-    tabContainer?.addEventListener(
-        'click',
-        (e: MouseEvent) => {
-            const clickedElement: HTMLElement = <HTMLElement>e.target;
-            if (clickedElement.dataset.href) {
-                const path = clickedElement.dataset.href ?? '';
-                useRequestAnimationFrame(() => router.push({ path }));
+    tabContainer?.addEventListener('click', (e: MouseEvent) => {
+        const clickedElement: HTMLElement = <HTMLElement>e.target;
+        if (clickedElement.dataset.href) {
+            const path = clickedElement.dataset.href ?? '';
+            useRequestAnimationFrame(() => router.push({ path }));
 
-                selectedTab && (selectedTab.dataset.selected = 'false');
-                selectedTab = clickedElement;
-                clickedElement.dataset.selected = 'true';
-            }
-        },
-        { signal: appInteractor.abortSignal },
-    );
-
-    appEvents.RUN_TEST.subscribe((uuid: string) => {
-        router.push({ path: '/test-logs', query: { uuid } }).then(() =>
-            appInteractor.handleRunTestEvent(uuid, () => {
-                appEvents?.POPUP.next({
-                    type: 'error',
-                    message: 'Error while streaming test logs',
-                });
-            }),
-        );
+            selectedTab && (selectedTab.dataset.selected = 'false');
+            selectedTab = clickedElement;
+            clickedElement.dataset.selected = 'true';
+        }
     });
 
     appEvents.POPUP.subscribe((event) => {
         clearAllPopup.value = event.clearAllBefore ?? false;
         popMessage.value = { type: event.type, message: event.message };
     });
-});
-onUnmounted(() => {
-    appInteractor.destroy();
 });
 </script>
 

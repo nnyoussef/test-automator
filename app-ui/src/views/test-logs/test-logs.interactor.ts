@@ -1,8 +1,8 @@
 import { createTestLogEntity, type TestLogEntity } from '@/views/test-logs/test-logs.entity.ts';
 import { bufferCount } from 'rxjs';
 import { BaseInteractor } from '@/common/base-interactor';
-import type { AppEventSourceType } from '@/views/app.events.ts';
 import type {
+    AppEventSourceType,
     TestLogHistoryViewModel,
     TestLogsInputProtocol,
     TestLogsOutputProtocol,
@@ -48,7 +48,6 @@ class TestLogsInteractor
     checkIfStreamIsFromServer(uuid: string): void {
         const testLog = this.getTestLogsState().getTestLogsByUuid(uuid);
         const isStreamFromServer =
-             
             !!testLog && testLog.eventSource?.readyState !== EventSource.CLOSED;
         this.outputProtocol?.onStreamSourceChecked(isStreamFromServer);
     }
