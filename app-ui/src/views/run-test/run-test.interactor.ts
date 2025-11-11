@@ -148,7 +148,7 @@ class RunTestInteractor
     }
 
     startTestRunner(uuid: string): void {
-        const url = `${this.getAppConfigs().apiProperties.url}/test/run-test?uuid=${uuid}`;
+        const url = `${this.getAppEnv().apiProperties.url}/test/run-test?uuid=${uuid}`;
         const eventSource = new EventSource(url);
         this.getTestLogsState().registerEventSource(uuid, eventSource);
         eventSource.onerror = () => {

@@ -1,11 +1,11 @@
 import { defineStore } from 'pinia';
 import type { KeyValueMap } from '@/common/types';
-import { appConfigs } from '@/config';
+import { env } from '@/environment';
 import { ReplaySubject } from 'rxjs';
-import type { AppEventSourceType } from '@/views/app.events.ts';
 import { computed, ref } from 'vue';
+import type { AppEventSourceType } from '@/views/test-logs/test-logs.protocol';
 
-const maxTestRunsNumber = appConfigs.maxTestRunnerCount;
+const maxTestRunsNumber = env.maxTestRunnerCount;
 
 export type TestLogRecord = {
     stream: ReplaySubject<{ type: AppEventSourceType; data: string }>;

@@ -1,4 +1,4 @@
-// eslint.config.js
+// eslint.environment.js
 import vuePlugin from 'eslint-plugin-vue';
 import promisePlugin from 'eslint-plugin-promise';
 import securityPlugin from 'eslint-plugin-security';
@@ -10,7 +10,7 @@ import vueParser from 'vue-eslint-parser';
 export default [
     // Ignore everything outside src
     {
-        ignores: ['dist/**', 'node_modules/**', 'eslint.config.js', '.eslintrc.cjs'],
+        ignores: ['dist/**', 'node_modules/**', 'eslint.environment.js', '.eslintrc.cjs'],
     },
 
     // JS and TS files

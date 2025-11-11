@@ -1,6 +1,6 @@
 import { Axios as axios } from 'axios-observable/dist/axios';
 
-type AppConfigs = Readonly<{
+type AppEnv = Readonly<{
     maxTestRunnerCount: number;
     maxElementToRenderPerRenderingCycle: number;
     isLoggingEnabled: boolean;
@@ -14,7 +14,7 @@ type ApiProperties = Readonly<{
     timeOut: number;
 }>;
 
-const appConfigs: AppConfigs = {
+const env: AppEnv = {
     maxTestRunnerCount: import.meta.env.VITE_MAX_TEST_RUN_NUMBER,
     maxElementToRenderPerRenderingCycle: import.meta.env.VITE_MAX_ELEMENT_TO_RENDER_PER_CYCLE,
     isLoggingEnabled: import.meta.env.VITE_LOGGING_ALLOWED,
@@ -28,13 +28,13 @@ const appConfigs: AppConfigs = {
 };
 
 axios.defaults.allowAbsoluteUrls = false;
-axios.defaults.baseURL = appConfigs.apiProperties.url;
-axios.defaults.timeout = appConfigs.apiProperties.timeOut;
+axios.defaults.baseURL = env.apiProperties.url;
+axios.defaults.timeout = env.apiProperties.timeOut;
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 axios.defaults.headers.common['Accept'] = 'application/json';
 
 requestIdleCallback(() => {
-    if (!appConfigs.isLoggingEnabled) {
+    if (!env.isLoggingEnabled) {
         globalThis.alert = () => {
             // Disable alert dialogs
         };
@@ -60,5 +60,5 @@ requestIdleCallback(() => {
     }
 });
 
-export { appConfigs };
-export type { AppConfigs, ApiProperties };
+export { env };
+export type { AppEnv, ApiProperties };

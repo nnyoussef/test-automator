@@ -2,7 +2,7 @@ import { useTestLogsState } from '@/stores';
 import { useGpState } from '@/stores/gp-store';
 
 import { UnsupportedOperationError } from '@/common/exceptions';
-import { type AppConfigs, appConfigs } from '@/config';
+import { type AppEnv, env } from '@/environment';
 import type { Optional, ReadonlyKeyValueMap } from '@/common/types.ts';
 
 export const noop = new Proxy({} as ReadonlyKeyValueMap<Function>, {
@@ -26,7 +26,7 @@ export abstract class BaseInteractor<OutputProtocol, ENTITY> {
     private _outputProtocol: Readonly<OutputProtocol> = noop as OutputProtocol;
 
     private readonly _abortController = new AbortController();
-    private readonly _appConfig: AppConfigs = appConfigs;
+    private readonly _appEnv: AppEnv = env;
 
     /**
      * Gets the entity associated with the interactor.
@@ -131,7 +131,7 @@ export abstract class BaseInteractor<OutputProtocol, ENTITY> {
      * Retrieves the application configurations.
      * @returns The application configurations.
      */
-    protected getAppConfigs(): AppConfigs {
-        return this._appConfig;
+    protected getAppEnv(): AppEnv {
+        return this._appEnv;
     }
 }

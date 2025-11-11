@@ -70,7 +70,7 @@ const onTestLogStreamReceived = (logChunk: TestLogsEvent[]) => {
 };
 /**
  *  requestAnimationFrame is very important, it allows us to render elements with size defined by
- *  appConfig.maxElementToRenderPerRenderingCycle as soon as they enter the buffer and synchronized with frame rate,
+ *  env.maxElementToRenderPerRenderingCycle as soon as they enter the buffer and synchronized with frame rate,
  *  without it we will have to wait for the entire recursion to be finished to render, meaning rendering all at once and in one frame.
  * */
 const renderTestEvent = () => {

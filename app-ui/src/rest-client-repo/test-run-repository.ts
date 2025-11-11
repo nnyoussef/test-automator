@@ -1,5 +1,5 @@
 import { Axios as axios, type AxiosObservable } from 'axios-observable';
-import { appConfigs } from '@/config';
+import { env } from '@/environment';
 import { retry } from 'rxjs';
 import { ApiEndpointsConstants } from '@/common/constantes/api-endpoint-constants';
 import type { KeyValueMap } from '@/common/types.ts';
@@ -25,7 +25,7 @@ function registerForTestRunner(
         .post(ApiEndpointsConstants.REGISTER_TO_TEST_RUNNER, data, {
             signal: abortController.signal,
         })
-        .pipe(retry(appConfigs.apiProperties));
+        .pipe(retry(env.apiProperties));
 }
 
 /**

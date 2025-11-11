@@ -41,7 +41,7 @@ class TestLogsInteractor
             : this.getTestLogsState().getRecentTestLogs.stream;
 
         this.entity.testLogsListener = logStream
-            ?.pipe(bufferCount(this.getAppConfigs().maxElementToRenderPerRenderingCycle))
+            ?.pipe(bufferCount(this.getAppEnv().maxElementToRenderPerRenderingCycle))
             .subscribe(handleEvents);
     }
 

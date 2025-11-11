@@ -1,4 +1,4 @@
-import { appConfigs } from '@/config';
+import { env } from '@/environment';
 import { Axios as axios, type AxiosObservable } from 'axios-observable';
 import type { ReadonlyKeyValueMap } from '@/common/types';
 import { retry } from 'rxjs';
@@ -22,7 +22,7 @@ function fetchAllAvailableTests(
         .get<AllAvailableTestResponse>(ApiEndpointsConstants.GET_ALL_TESTS, {
             signal: abortController.signal,
         })
-        .pipe(retry(appConfigs.apiProperties));
+        .pipe(retry(env.apiProperties));
 }
 
 /**
@@ -40,7 +40,7 @@ function fetchTestSpecificDetails(
             params: { from: path },
             signal: abortController.signal,
         })
-        .pipe(retry(appConfigs.apiProperties));
+        .pipe(retry(env.apiProperties));
 }
 
 /**
