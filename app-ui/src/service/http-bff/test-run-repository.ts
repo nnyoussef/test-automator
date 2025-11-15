@@ -1,7 +1,7 @@
 import { Axios as axios, type AxiosObservable } from 'axios-observable';
 import { env } from '@/environment';
 import { retry } from 'rxjs';
-import { ApiEndpointsConstants } from '@/common/constantes/api-endpoint-constants';
+import { ApiEndpointsConstants } from '@/common/constantes/api-endpoint-constants.ts';
 import type { KeyValueMap } from '@/common/types.ts';
 
 type TestRegistrationToken = {

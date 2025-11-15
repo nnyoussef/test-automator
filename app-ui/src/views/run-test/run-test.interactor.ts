@@ -1,6 +1,6 @@
 import { map } from 'rxjs';
-import { testRunRepository } from '@/rest-client-repo/test-run-repository';
-import { testInfoRepository } from '@/rest-client-repo/test-info-repository';
+import { testRunRepository } from '@/service/http-bff/test-run-repository.ts';
+import { testInfoRepository } from '@/service/http-bff/test-info-repository.ts';
 import { toRaw } from 'vue';
 import { createRunTestEntity, type TestEntity } from './run-test.entity.ts';
 import { BaseInteractor } from '@/common/base-interactor';

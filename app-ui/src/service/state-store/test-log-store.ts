@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia';
-import type { KeyValueMap } from '@/common/types';
+import type { KeyValueMap } from '@/common/types.ts';
 import { env } from '@/environment';
 import { ReplaySubject } from 'rxjs';
 import { computed, ref } from 'vue';
-import type { AppEventSourceType } from '@/views/test-logs/test-logs.protocol';
+import type { AppEventSourceType } from '@/views/test-logs/test-logs.protocol.ts';
 
 const maxTestRunsNumber = env.maxTestRunnerCount;
 

@@ -1,5 +1,5 @@
-import { useTestLogsState } from '@/stores';
-import { useGpState } from '@/stores/gp-store';
+import { useTestLogsState } from '@/service/state-store/test-log-store.ts';
+import { useGpState } from '@/service/state-store/gp-store';
 
 import { UnsupportedOperationError } from '@/common/exceptions';
 import { type AppEnv, env } from '@/environment';

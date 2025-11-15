@@ -1,8 +1,8 @@
 import { env } from '@/environment';
 import { Axios as axios, type AxiosObservable } from 'axios-observable';
-import type { ReadonlyKeyValueMap } from '@/common/types';
+import type { ReadonlyKeyValueMap } from '@/common/types.ts';
 import { retry } from 'rxjs';
-import { ApiEndpointsConstants } from '@/common/constantes/api-endpoint-constants';
+import { ApiEndpointsConstants } from '@/common/constantes/api-endpoint-constants.ts';
 
 type TestResponseRecord = {
     name: string;
