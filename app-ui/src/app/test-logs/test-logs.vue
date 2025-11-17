@@ -12,18 +12,15 @@ import {
 import LoaderView from '@/components/loading/LoaderView.vue';
 import VerticalBox from '@/components/layouts/VerticalBox.vue';
 import DialogView from '@/components/containers/DialogView.vue';
-import {
-    type AppEvents,
-    APP_EVENTS_INJECTION_KEY,
-    type AppEventSourceType,
-} from '@/app/app.events.ts';
-import { type TestLogsEvent, useTestLogsInteractor } from '@/app/test-logs/test-logs.interactor.ts';
+import { APP_EVENTS_INJECTION_KEY, type AppEvents } from '@/app/app.events.ts';
+import { useTestLogsInteractor } from '@/app/test-logs/test-logs.interactor.ts';
 import { useRoute } from 'vue-router';
 import HorizontalBox from '@/components/layouts/HorizontalBox.vue';
 import IconButton from '@/components/interactive/IconButton.vue';
 import {
     type TestLogHistoryViewModel,
     type TestLogPropertiesViewModel,
+    type TestLogViewModel,
 } from '@/app/test-logs/test-logs.protocol.ts';
 import LazyRenderableView from '@/components/containers/LazyRenderableView.vue';
 import { useErrorHandler } from '@/components/composable/error-handler.ts';
@@ -34,7 +31,7 @@ let selectableItemsTable = defineAsyncComponent(
 );
 useErrorHandler();
 const testLogsContainerIsLoaded = ref(false);
-const testLogs = shallowRef<{ type: AppEventSourceType; data: string }[]>([]);
+const testLogs = shallowRef<TestLogViewModel[]>([]);
 const testLogsSummary = shallowRef<string>();
 const testRunsHistory = ref<any[]>([]);
 const selectedTestLogParam = ref();
@@ -45,12 +42,12 @@ const isStreamCurrentlyActive = ref(false);
 const isTestRunsHistoryNotEmpty = ref(false);
 
 let selectedTestUuid: string;
-let chunkedTestLogs: { data: string; type: AppEventSourceType }[][] = [];
+let chunkedTestLogs: TestLogViewModel[][] = [];
 let eventHandlerPaused = false;
 const testLogsInputInteractor = useTestLogsInteractor(<string>useRoute().query.uuid);
 const appEvents = inject<AppEvents>(APP_EVENTS_INJECTION_KEY);
 const logContainer = useTemplateRef<HTMLDivElement>('logContainer');
-const eventCssClassMap: Record<AppEventSourceType, string> = {
+const eventCssClassMap: Record<TestLogViewModel['type'], string> = {
     HTML_REPORT: 'html-report',
     TEST_END: '',
     PROGRESS_EVENT_MESSAGE: '',
@@ -58,7 +55,7 @@ const eventCssClassMap: Record<AppEventSourceType, string> = {
 };
 let renderingAnimationFrameId: number;
 
-const onTestLogStreamReceived = (logChunk: TestLogsEvent[]) => {
+const onTestLogStreamReceived = (logChunk: TestLogViewModel[]) => {
     chunkedTestLogs.push(logChunk);
     if (eventHandlerPaused) {
         eventHandlerPaused = false;
@@ -164,7 +161,7 @@ const onTestRepeatClicked = () => {
     requestAnimationFrame(() =>
         testLogsInputInteractor.startListeningToTestLogs(clearTestLogView, selectedTestUuid),
     );
-    appEvents?.RUN_TEST.next(selectedTestUuid);
+    testLogsInputInteractor.repeatLastTestRun();
 };
 
 const onTestRunsHistoryClicked = () => {

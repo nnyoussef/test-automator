@@ -24,7 +24,7 @@ public final class TestConfigurationsReader extends BaseFunction implements Func
 
     @Override
     public Map<String, Object> apply(String s) {
-        Path configurationFileLocation = Path.of(getResDir(), "test-suites" ,s.replace(".feature", TEST_FORM_FILE_EXTENSION));
+        Path configurationFileLocation = Path.of(getResDir(), "test-suites", s.replace(".feature", TEST_FORM_FILE_EXTENSION));
         try {
             return YAML.load(new FileInputStream(configurationFileLocation.toFile()));
         } catch (FileNotFoundException e) {

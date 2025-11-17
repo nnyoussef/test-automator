@@ -31,9 +31,7 @@ export function useCollapsibleTransition(maxHeight: number, duration: number) {
     const leave = (el: Element) => {
         const e = el as HTMLElement;
         e.style.transition = transition;
-        requestAnimationFrame(() => {
-            e.style.height = '0';
-        });
+        requestAnimationFrame(() => (e.style.height = '0'));
     };
 
     return {

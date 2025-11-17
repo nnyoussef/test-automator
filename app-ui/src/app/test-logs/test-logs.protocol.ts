@@ -1,8 +1,7 @@
 /**
  * This file defines the protocols for the Test Logs feature, including input and output interfaces
  * */
-import type { TestLogsEvent } from '@/app/test-logs/test-logs.interactor.ts';
-import type { TestLogRecord } from '@/service/state-store/test-log-store.ts';
+import type { TestLog, TestRunRecord } from '@/service/state-store/test-log-store.ts';
 import type { KeyValueMap } from '@/common/types';
 
 /**
@@ -54,6 +53,11 @@ interface TestLogsInputProtocol {
      * @param selectedTestUuid - The UUID to set as selected.
      */
     setUuidAsSelected(selectedTestUuid: string): void;
+
+    /**
+     * Repeats the last test run.
+     */
+    repeatLastTestRun(): void;
 }
 
 /**
@@ -110,17 +114,9 @@ type TestLogHistoryViewModel = Readonly<{
     value: string;
 }>;
 
-type TestLogPropertiesViewModel = Readonly<TestLogRecord>;
-type TestLogsEventsViewModel = readonly TestLogsEvent[];
-
-export enum AppEventSourceEnum {
-    TEST_END,
-    HTML_REPORT,
-    PROGRESS_EVENT_MESSAGE,
-    PROGRESS_EVENT_PERCENTAGE,
-}
-
-export type AppEventSourceType = keyof typeof AppEventSourceEnum;
+type TestLogPropertiesViewModel = Readonly<TestRunRecord>;
+type TestLogViewModel = Readonly<TestLog>;
+type TestLogsEventsViewModel = Readonly<TestLogViewModel[]>;
 
 export type {
     TestLogsInputProtocol,
@@ -128,4 +124,5 @@ export type {
     TestLogHistoryViewModel,
     TestLogPropertiesViewModel,
     TestLogsEventsViewModel,
+    TestLogViewModel,
 };

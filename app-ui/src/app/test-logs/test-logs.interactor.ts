@@ -2,17 +2,14 @@ import { createTestLogEntity, type TestLogEntity } from '@/app/test-logs/test-lo
 import { bufferCount } from 'rxjs';
 import { BaseInteractor } from '@/common/base-interactor';
 import type {
-    AppEventSourceType,
     TestLogHistoryViewModel,
     TestLogsInputProtocol,
     TestLogsOutputProtocol,
 } from '@/app/test-logs/test-logs.protocol.ts';
 import type { Optional } from '@/common/types.ts';
-
-type TestLogsEvent = {
-    data: string;
-    type: AppEventSourceType;
-};
+import type { TestLog } from '@/service/state-store/test-log-store.ts';
+import { testRunnerManager } from '@/service/test-runner/test-runner-manager.ts';
+import testLogs from '@/app/test-logs/test-logs.vue';
 
 class TestLogsInteractor
     extends BaseInteractor<TestLogsOutputProtocol, TestLogEntity>
@@ -28,7 +25,7 @@ class TestLogsInteractor
     startListeningToTestLogs(preProcessing: () => void, uuid?: string): void {
         let hasPreProcessed = false;
 
-        const handleEvents = (events: TestLogsEvent[]): void => {
+        const handleEvents = (events: TestLog[]): void => {
             if (!hasPreProcessed) {
                 preProcessing();
                 hasPreProcessed = true;
@@ -36,9 +33,9 @@ class TestLogsInteractor
             this.outputProtocol?.onTestLogStreamReceived(events);
         };
 
-        const logStream = uuid
-            ? this.getTestLogsState().getTestLogsByUuid(uuid)?.stream
-            : this.getTestLogsState().getRecentTestLogs.stream;
+        const logStream = testRunnerManager.getTestLogsStream(
+            uuid ?? this.entity.selectedUuid ?? '',
+        );
 
         this.entity.testLogsListener = logStream
             ?.pipe(bufferCount(this.getAppEnv().maxElementToRenderPerRenderingCycle))
@@ -91,6 +88,10 @@ class TestLogsInteractor
         this.saveToGpStateStore(TestLogsInteractor.SELECTED_UUID_KEY, selectedUuid);
     }
 
+    repeatLastTestRun(): void {
+        this.entity.selectedUuid && testRunnerManager.startTestRunner(this.entity.selectedUuid);
+    }
+
     protected initEntity(forcedUuid: Optional<string>): TestLogEntity {
         const entity = createTestLogEntity();
         const persistedUuid = this.getFromGpStateStore<string | undefined>(
@@ -121,4 +122,4 @@ type InteractorType = TestLogsInputProtocol & BaseInteractor<TestLogsOutputProto
 const useTestLogsInteractor = (forcedUuid: Optional<string>): InteractorType =>
     new TestLogsInteractor(forcedUuid) as InteractorType;
 
-export { type TestLogsEvent, useTestLogsInteractor };
+export { useTestLogsInteractor };

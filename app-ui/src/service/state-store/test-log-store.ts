@@ -3,19 +3,29 @@ import type { KeyValueMap } from '@/common/types.ts';
 import { env } from '@/environment';
 import { ReplaySubject } from 'rxjs';
 import { computed, ref } from 'vue';
-import type { AppEventSourceType } from '@/app/test-logs/test-logs.protocol.ts';
+
+export enum TestLogTypeEnum {
+    TEST_END,
+    HTML_REPORT,
+    PROGRESS_EVENT_MESSAGE,
+    PROGRESS_EVENT_PERCENTAGE,
+}
+
+export type TestLogType = keyof typeof TestLogTypeEnum;
+
+export type TestLog = { type: TestLogType; data: string };
 
 const maxTestRunsNumber = env.maxTestRunnerCount;
 
-export type TestLogRecord = {
-    stream: ReplaySubject<{ type: AppEventSourceType; data: string }>;
+export type TestRunRecord = {
+    stream: ReplaySubject<TestLog>;
     params: KeyValueMap;
     createdAt: string;
     testName: string;
     eventSource: EventSource;
 };
 
-type TestLogsHistoryType = KeyValueMap<TestLogRecord>;
+type TestLogsHistoryType = KeyValueMap<TestRunRecord>;
 
 // ✅ Composition API version of useTestLogsState
 export const useTestLogsState = defineStore('test-logs', () => {
@@ -25,11 +35,11 @@ export const useTestLogsState = defineStore('test-logs', () => {
 
     // --- GETTERS (computed) ---
     const getRecentTestLogs = computed(() => {
-        return testLogsHistory.value[lastCreatedUuid.value] as TestLogRecord;
+        return testLogsHistory.value[lastCreatedUuid.value] as TestRunRecord;
     });
 
-    const getTestLogsByUuid = (uuid: string): TestLogRecord =>
-        testLogsHistory.value[uuid] as TestLogRecord;
+    const getTestLogsByUuid = (uuid: string): TestRunRecord =>
+        testLogsHistory.value[uuid] as TestRunRecord;
 
     const getTestLogsHistory = <T>(
         mapperFunction: (uuid: string, creationDate: string, name: string) => T,
@@ -64,10 +74,7 @@ export const useTestLogsState = defineStore('test-logs', () => {
         };
     }
 
-    function putTestLogInHistoryWithUuid(
-        log: { type: AppEventSourceType; data: string },
-        uuid: string,
-    ) {
+    function putTestLogInHistoryWithUuid(log: { type: TestLogType; data: string }, uuid: string) {
         const record = getTestLogsByUuid(uuid);
         if (!record) return;
         if (record.stream.closed) {

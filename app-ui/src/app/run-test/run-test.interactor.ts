@@ -1,5 +1,4 @@
 import { map } from 'rxjs';
-import { testRunRepository } from '@/service/http-bff/test-run-repository.ts';
 import { testInfoRepository } from '@/service/http-bff/test-info-repository.ts';
 import { toRaw } from 'vue';
 import { createRunTestEntity, type TestEntity } from './run-test.entity.ts';
@@ -10,8 +9,7 @@ import type {
 } from '@/app/run-test/run-test.protocol.ts';
 import type { KeyValueMap } from '@/common/types';
 import type { FormControl, FormControlDataType } from '@/components/dynamic-form';
-import type { Error } from '../../../neutralino';
-import { AppEventSourceEnum, type AppEventSourceType } from '../test-logs/test-logs.protocol.ts';
+import { testRunnerManager } from '@/service/test-runner/test-runner-manager.ts';
 
 /**
  * Interactor responsible for managing test execution and related metadata.
@@ -88,41 +86,40 @@ class RunTestInteractor
     }
 
     /** Registers a new test run with the provided parameters. */
-    public registerForTestRunner(name: string, path: string, form: KeyValueMap): void {
+    public registerForTestRunner(name: string, path: string, form: KeyValueMap<never>): void {
         if (!this.isTestRunnerParamsValid(name, path, form)) {
             this.outputProtocol.registerForTestRunnerFailure();
             return;
         }
 
-        if (!this.getTestLogsState().canAddAnotherTestLog) {
+        const testParams = this.formatTestParams(form);
+
+        const onRegistrationLimitReached = () => {
             this.outputProtocol.registerForTestRunnerFailure();
             this.outputProtocol.eventReporter(
                 'Limit reached, cannot start another test run',
                 'error',
             );
-            return;
-        }
+        };
 
-        const testParams = this.formatTestParams(form);
-        const composedPath = this.composeTestPath(name, path);
+        const onRegisterSuccess = (uuid: string) => {
+            this.outputProtocol.registerForTestRunnerSuccess(uuid);
+            this.outputProtocol.eventReporter(
+                'Test run registered successfully and will be executed in background',
+                'info',
+            );
+        };
 
-        testRunRepository
-            .registerForTestRunner({ path, testParams }, this.abortController)
-            .pipe(map((response) => response.data.token))
-            .subscribe({
-                next: (uuid) => {
-                    this.getTestLogsState().addNewTestLogStream(uuid, composedPath, form);
-                    this.outputProtocol.registerForTestRunnerSuccess(uuid);
-                    this.outputProtocol.eventReporter(
-                        'Test run registered successfully and will be executed in background',
-                        'info',
-                    );
-                },
-                error: (error) => {
-                    this.outputProtocol.registerForTestRunnerFailure();
-                    this.outputProtocol.eventReporter(error.message, 'error');
-                },
-            });
+        const onRegisterFailure = (error: Error) => {
+            this.outputProtocol.registerForTestRunnerFailure();
+            this.outputProtocol.eventReporter(error.message, 'error');
+        };
+
+        testRunnerManager.registerNewTestRunner({ path, testParams, name }, this.abortController, {
+            onRegisterSuccess,
+            onRegisterFailure,
+            onRegistrationLimitReached,
+        });
     }
 
     /** Refreshes all available tests. */
@@ -148,25 +145,7 @@ class RunTestInteractor
     }
 
     public startTestRunner(uuid: string): void {
-        const url = `${this.getAppEnv().apiProperties.url}/test/run-test?uuid=${uuid}`;
-        const eventSource = new EventSource(url);
-        this.getTestLogsState().registerEventSource(uuid, eventSource);
-        eventSource.onerror = (ev) => {
-            this.getTestLogsState().testLogsForUuidComplete(uuid);
-            this.outputProtocol.eventReporter('Test run failed', 'error');
-        };
-
-        this.getTestLogsState().setLastCreatedUuidTo(uuid);
-
-        const eventPublisher = (ev: MessageEvent, eventName: AppEventSourceType) => {
-            const dataToTransmit = { uuid, data: ev.data, type: eventName };
-            this.getTestLogsState().putTestLogInHistoryWithUuid(dataToTransmit, uuid);
-        };
-
-        for (const type of Object.values(AppEventSourceEnum)) {
-            const typeString = <AppEventSourceType>type;
-            eventSource.addEventListener(typeString, (event) => eventPublisher(event, typeString));
-        }
+        testRunnerManager.startTestRunner(uuid);
     }
 
     /** Cleans up persistent state and aborts any ongoing operations. */
@@ -224,14 +203,6 @@ class RunTestInteractor
             params[key] = toRaw(toRaw(value).data);
         }
         return params;
-    }
-
-    /** Builds the full test path with the test name appended. */
-    private composeTestPath(name: string, path: string): string {
-        const segments = path.split(/[/\\]/);
-        segments.pop();
-        segments.push(name);
-        return segments.join('/');
     }
 }
 
