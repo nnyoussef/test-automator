@@ -1,7 +1,7 @@
 /**
  * This file defines the protocols for the Test Logs feature, including input and output interfaces
  * */
-import type { TestLogsEvent } from '@/views/test-logs/test-logs.interactor.ts';
+import type { TestLogsEvent } from '@/app/test-logs/test-logs.interactor.ts';
 import type { TestLogRecord } from '@/service/state-store/test-log-store.ts';
 import type { KeyValueMap } from '@/common/types';
 

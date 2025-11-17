@@ -1,6 +1,6 @@
 import { BaseInteractor } from '@/common/base-interactor.ts';
 import { UnsupportedOperationError } from '@/common/exceptions.ts';
-import type { HelpInputProtocol, HelpOutputProtocol } from '@/views/help/help-protocol.ts';
+import type { HelpInputProtocol, HelpOutputProtocol } from '@/app/help/help-protocol.ts';
 import { marked } from 'marked';
 
 class HelpInteractor

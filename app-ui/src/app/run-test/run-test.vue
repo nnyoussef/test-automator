@@ -3,9 +3,9 @@ import { defineAsyncComponent, inject, onMounted, onUnmounted, ref, shallowRef }
 import PanelView from '@/components/containers/PanelView.vue';
 import FileSelectorList from '@/components/interactive/FileSelectorList.vue';
 import IconButton from '@/components/interactive/IconButton.vue';
-import { APP_EVENTS_INJECTION_KEY, type AppEvents } from '@/views/app.events.ts';
-import { createRunTestInputProtocol } from '@/views/run-test/run-test.interactor.ts';
-import { type TestMetaDataViewModel } from '@/views/run-test/run-test.protocol.ts';
+import { APP_EVENTS_INJECTION_KEY, type AppEvents } from '@/app/app.events.ts';
+import { createRunTestInputProtocol } from '@/app/run-test/run-test.interactor.ts';
+import { type TestMetaDataViewModel } from '@/app/run-test/run-test.protocol.ts';
 import type { KeyValueMap, MessageLevel } from '@/common/types';
 import { useRequestAnimationFrame } from '@/components/composable/animation-frame.ts';
 import { useErrorHandler } from '@/components/composable/error-handler.ts';

@@ -7,7 +7,7 @@ import { BaseInteractor } from '@/common/base-interactor';
 import type {
     RunTestInteractorInputProtocol,
     RunTestInteractorOutputProtocol,
-} from '@/views/run-test/run-test.protocol.ts';
+} from '@/app/run-test/run-test.protocol.ts';
 import type { KeyValueMap } from '@/common/types';
 import type { FormControl, FormControlDataType } from '@/components/dynamic-form';
 import type { Error } from '../../../neutralino';
@@ -147,11 +147,11 @@ class RunTestInteractor
         this.outputProtocol.lastSelectedTestPathRetrieved(this.entity.getLastSelectedTestPath());
     }
 
-    startTestRunner(uuid: string): void {
+    public startTestRunner(uuid: string): void {
         const url = `${this.getAppEnv().apiProperties.url}/test/run-test?uuid=${uuid}`;
         const eventSource = new EventSource(url);
         this.getTestLogsState().registerEventSource(uuid, eventSource);
-        eventSource.onerror = () => {
+        eventSource.onerror = (ev) => {
             this.getTestLogsState().testLogsForUuidComplete(uuid);
             this.outputProtocol.eventReporter('Test run failed', 'error');
         };

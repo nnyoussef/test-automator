@@ -1,4 +1,4 @@
-import type { TestMetaData } from '@/views/run-test/run-test.entity.ts';
+import type { TestMetaData } from '@/app/run-test/run-test.entity.ts';
 import type { KeyValueMap } from '@/common/types';
 import type { BaseOutputProtocole } from '@/common/base-output-protocole.ts';
 

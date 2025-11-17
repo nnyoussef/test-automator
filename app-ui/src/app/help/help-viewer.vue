@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import LoaderView from '@/components/loading/LoaderView.vue';
-import { useHelpInteractor } from '@/views/help/help-interactor.ts';
+import { useHelpInteractor } from '@/app/help/help-interactor.ts';
 import { useErrorHandler } from '@/components/composable/error-handler.ts';
 
 const helpInputInteractor = useHelpInteractor();

@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import RunTest from '@/views/run-test/run-test.vue';
+import RunTest from '@/app/run-test/run-test.vue';
 
 const router = createRouter({
     history: createWebHistory(),
@@ -17,12 +17,12 @@ const router = createRouter({
 
         {
             path: '/test-logs',
-            component: () => import('@/views/test-logs/test-logs.vue'),
+            component: () => import('@/app/test-logs/test-logs.vue'),
             meta: { tabIndex: 1 },
         },
         {
             path: '/help',
-            component: () => import('@/views/help/help-viewer.vue'),
+            component: () => import('@/app/help/help-viewer.vue'),
             meta: { tabIndex: 2 },
         },
         {
@@ -32,7 +32,7 @@ const router = createRouter({
         },
         {
             path: '/error',
-            component: () => import('@/views/error/error-viewer.vue'),
+            component: () => import('@/app/error/error-viewer.vue'),
         },
     ],
 });

@@ -16,18 +16,15 @@ import {
     type AppEvents,
     APP_EVENTS_INJECTION_KEY,
     type AppEventSourceType,
-} from '@/views/app.events.ts';
-import {
-    type TestLogsEvent,
-    useTestLogsInteractor,
-} from '@/views/test-logs/test-logs.interactor.ts';
+} from '@/app/app.events.ts';
+import { type TestLogsEvent, useTestLogsInteractor } from '@/app/test-logs/test-logs.interactor.ts';
 import { useRoute } from 'vue-router';
 import HorizontalBox from '@/components/layouts/HorizontalBox.vue';
 import IconButton from '@/components/interactive/IconButton.vue';
 import {
     type TestLogHistoryViewModel,
     type TestLogPropertiesViewModel,
-} from '@/views/test-logs/test-logs.protocol.ts';
+} from '@/app/test-logs/test-logs.protocol.ts';
 import LazyRenderableView from '@/components/containers/LazyRenderableView.vue';
 import { useErrorHandler } from '@/components/composable/error-handler.ts';
 import { useRequestAnimationFrame } from '@/components/composable/animation-frame.ts';

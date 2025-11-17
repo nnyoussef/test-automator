@@ -3,7 +3,7 @@ import type { KeyValueMap } from '@/common/types.ts';
 import { env } from '@/environment';
 import { ReplaySubject } from 'rxjs';
 import { computed, ref } from 'vue';
-import type { AppEventSourceType } from '@/views/test-logs/test-logs.protocol.ts';
+import type { AppEventSourceType } from '@/app/test-logs/test-logs.protocol.ts';
 
 const maxTestRunsNumber = env.maxTestRunnerCount;
 

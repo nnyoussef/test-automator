@@ -2,13 +2,11 @@ import { onErrorCaptured } from 'vue';
 import { useRouter } from 'vue-router';
 
 function routeToErrorViewer(error: unknown, instance: unknown, info: string): void {
-    // @ts-ignore
     useRouter()
         .getRoutes()
-
         .find((routerRecord) => routerRecord.path === '/error')!.meta = {
         error,
-         
+        // @ts-ignore
         file: instance?.$.type.__file,
         info,
     };

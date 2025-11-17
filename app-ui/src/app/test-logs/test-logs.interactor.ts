@@ -1,4 +1,4 @@
-import { createTestLogEntity, type TestLogEntity } from '@/views/test-logs/test-logs.entity.ts';
+import { createTestLogEntity, type TestLogEntity } from '@/app/test-logs/test-logs.entity.ts';
 import { bufferCount } from 'rxjs';
 import { BaseInteractor } from '@/common/base-interactor';
 import type {
@@ -6,7 +6,7 @@ import type {
     TestLogHistoryViewModel,
     TestLogsInputProtocol,
     TestLogsOutputProtocol,
-} from '@/views/test-logs/test-logs.protocol.ts';
+} from '@/app/test-logs/test-logs.protocol.ts';
 import type { Optional } from '@/common/types.ts';
 
 type TestLogsEvent = {

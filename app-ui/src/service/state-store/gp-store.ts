@@ -9,13 +9,13 @@ export const useGpState = defineStore('gp', () => {
     // --- GETTERS ---
     const getByKeys = <T>(component: string, variableName: string, defaultValue: T) => {
         if (!state.value[component]) return defaultValue;
-        return state.value[component][variableName] ?? defaultValue;
+        return (state.value[component][variableName] satisfies T) ?? defaultValue;
     };
 
     // --- ACTIONS ---
-    function putByKey(component: string, variableName: string, value: unknown): void {
+    function putByKey<T>(component: string, variableName: string, value: T): void {
         state.value[component] ??= {};
-        state.value[component][variableName] = value;
+        (state.value[component][variableName] satisfies T) = value;
     }
 
     return {
