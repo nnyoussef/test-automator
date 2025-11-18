@@ -263,7 +263,7 @@ onUnmounted(() => {
                 :is="selectableItemsTable"
                 :column-name="['Field', 'Value']"
                 :disableSelectRow="true"
-                :item-to-row-mapper="(arg: any[]) => [arg[0], arg[1].data]"
+                :item-to-row-mapper="(arg: any[]) => [arg[0], arg[1]]"
                 :items="selectedTestLogParam"
             />
         </DialogView>
