@@ -10,7 +10,7 @@ withDefaults(defineProps<ChipViewProps>(), {
 </script>
 
 <template>
-    <HorizontalBox :title="text" class="chip" :style="{ '--color': textColor }">
+    <HorizontalBox :title="text" class="chip layout-containment" :style="{ '--color': textColor }">
         <p class="label unselectable">
             {{ text }}
         </p>

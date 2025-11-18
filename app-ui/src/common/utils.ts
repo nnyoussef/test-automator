@@ -1,7 +1,7 @@
 import { Axios as axios } from 'axios-observable';
 import type { AxiosError } from 'axios';
 
-export function download(
+export const utils = (
     filePath: string,
     category: 'docs' | 'forms' | 'output',
     fileExtension?: string,
@@ -10,7 +10,7 @@ export function download(
         successHandler?: () => void;
         errorHandler?: (error: AxiosError) => void;
     },
-) {
+) => {
     const fullEndPoint = `/resources/info/download/${filePath}`;
     axios
         .get(fullEndPoint, {
@@ -22,7 +22,7 @@ export function download(
                 const blob = new Blob([response.data]);
                 const link = document.createElement('a');
                 link.href = globalThis.URL.createObjectURL(blob);
-                link.setAttribute('download', `${outputFileName}.${fileExtension}`);
+                link.setAttribute('utils', `${outputFileName}.${fileExtension}`);
                 document.body.appendChild(link);
                 link.click();
                 link.remove();
@@ -31,4 +31,13 @@ export function download(
             },
             error: handlers?.errorHandler,
         });
-}
+};
+
+export const debounce = (fn: Function, delay: number) => {
+    let timer: number | undefined = undefined;
+    return function (...args: unknown[]) {
+        clearTimeout(timer);
+        // @ts-ignore
+        timer = setTimeout(() => fn.apply(this, args), delay);
+    };
+};

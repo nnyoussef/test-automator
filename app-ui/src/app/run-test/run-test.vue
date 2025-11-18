@@ -11,7 +11,7 @@ import { useRequestAnimationFrame } from '@/components/composable/animation-fram
 import { useErrorHandler } from '@/components/composable/error-handler.ts';
 import LazyRenderableView from '@/components/containers/LazyRenderableView.vue';
 import HorizontalBox from '@/components/layouts/HorizontalBox.vue';
-import { download } from '@/common/download.ts';
+import { utils } from '@/common/utils.ts';
 import type { FileProps } from '@/components/interactive';
 import { AxiosError } from 'axios';
 import { useRouter } from 'vue-router';
@@ -110,7 +110,7 @@ function downloadDocumentation(isDirectory = false) {
     const directory = selectedTestValue?.directory as string;
     const filePath = selectedTestValue?.path as string;
     const fileName = selectedTestValue?.name as string;
-    download(
+    utils(
         isDirectory ? directory : filePath,
         'docs',
         'pdf',
