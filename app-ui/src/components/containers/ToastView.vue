@@ -3,14 +3,18 @@ import { onMounted, ref, watch } from 'vue';
 import type { ToastViewProps } from '@/components/containers/index.ts';
 import IconButton from '@/components/interactive/IconButton.vue';
 
+type ToastItemsType = ToastViewProps['content'] & { id: number; timeStamp?: number };
+
 const props = withDefaults(defineProps<ToastViewProps>(), {
     duration: 5000,
     limit: 5,
 });
 
 let toastId = 0;
-const items = ref<(ToastViewProps['content'] & { id: number })[]>([]);
+const items = ref<ToastItemsType[]>([]);
 const overflowReserve: typeof items.value = [];
+let toastRemovalWatchIsActive = false;
+
 onMounted(() => {
     watch(
         () => props.content,
@@ -19,27 +23,53 @@ onMounted(() => {
                 const { value: list } = items;
 
                 if (!newVal) return;
-                const item = { ...newVal, id: toastId++ };
+                const item = { ...newVal, id: toastId++ } as ToastItemsType;
 
                 if (list.length >= props.limit) {
-                    overflowReserve.push(item);
+                    overflowReserve.push({ ...item });
+                    if (!toastRemovalWatchIsActive) {
+                        toastRemovalWatchIsActive = true;
+                        toastRemovalWatch(props.duration);
+                    }
                     return;
                 }
+                item.timeStamp = Date.now();
                 // Add new item
                 list.push(item);
+
+                if (!toastRemovalWatchIsActive) {
+                    toastRemovalWatchIsActive = true;
+                    toastRemovalWatch(props.duration);
+                }
             });
         },
     );
-    setInterval(() => {
-        requestIdleCallback(() => {
-            if (items.value.length > 0) {
-                items.value.shift();
-                if (overflowReserve.length > 0) {
-                    items.value.push(overflowReserve.shift() as (typeof items.value)[number]);
+    const toastRemovalWatch = (duration: number) => {
+        setTimeout(() => {
+            requestIdleCallback(() => {
+                if (items.value.length > 0) {
+                    let remainingTime = calculateToastRemainingTime(items.value[0]);
+
+                    if (remainingTime <= 0) {
+                        items.value.shift();
+                        if (overflowReserve.length > 0) {
+                            const item = overflowReserve.shift() as (typeof items.value)[number];
+                            item.timeStamp = Date.now();
+                            items.value.push(item);
+                        }
+                        console.log('remainingTime', remainingTime);
+                        remainingTime = calculateToastRemainingTime(items.value[0]);
+                    }
+                    toastRemovalWatch(remainingTime);
                 }
-            }
-        });
-    }, props.duration ?? 5000);
+                toastRemovalWatchIsActive = false;
+            });
+        }, duration);
+    };
+
+    const calculateToastRemainingTime = (item?: ToastItemsType) => {
+        return item?.timeStamp ? props.duration - (Date.now() - item.timeStamp) : props.duration;
+    };
 });
 </script>
 

@@ -7,9 +7,8 @@ import type {
     TestLogsOutputProtocol,
 } from '@/app/test-logs/test-logs.protocol.ts';
 import type { Optional } from '@/common/types.ts';
-import type { TestLog } from '@/service/state-store/test-log-store.ts';
+import type { TestLog, TestRunRecord } from '@/service/state-store/test-log-store.ts';
 import { testRunnerManager } from '@/service/test-runner/test-runner-manager.ts';
-import testLogs from '@/app/test-logs/test-logs.vue';
 
 class TestLogsInteractor
     extends BaseInteractor<TestLogsOutputProtocol, TestLogEntity>
@@ -17,7 +16,7 @@ class TestLogsInteractor
 {
     private static readonly SELECTED_UUID_KEY = 'selectedUuid';
 
-    constructor(private readonly forcedUuid: Optional<string>) {
+    constructor(forcedUuid: Optional<string>) {
         super();
         this.entity = this.initEntity(forcedUuid);
     }
@@ -54,7 +53,7 @@ class TestLogsInteractor
     }
 
     fetchTestLogsByUuid(uuid: string): void {
-        const testLogs = this.getTestLogsState().getTestLogsByUuid(uuid);
+        const testLogs: TestRunRecord = this.getTestLogsState().getTestLogsByUuid(uuid);
         this.outputProtocol?.onTestLogFetched(testLogs);
     }
 
