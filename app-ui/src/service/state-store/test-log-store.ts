@@ -9,6 +9,7 @@ export enum TestLogTypeEnum {
     HTML_REPORT,
     PROGRESS_EVENT_MESSAGE,
     PROGRESS_EVENT_PERCENTAGE,
+    ERROR,
 }
 
 export type TestLogType = keyof typeof TestLogTypeEnum;

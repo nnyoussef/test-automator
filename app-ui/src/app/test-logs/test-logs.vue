@@ -52,6 +52,7 @@ const eventCssClassMap: Record<TestLogViewModel['type'], string> = {
     TEST_END: '',
     PROGRESS_EVENT_MESSAGE: '',
     PROGRESS_EVENT_PERCENTAGE: '',
+    ERROR: '',
 };
 let renderingAnimationFrameId: number;
 
@@ -80,19 +81,28 @@ const renderTestEvent = () => {
         }
         eventHandlerPaused = true;
         const lastEvent = arrayToRender[arrayToRender.length - 1];
-        if (lastEvent?.type === 'TEST_END') {
-            testLogsSummary.value = arrayToRender.pop()!.data;
-            testLogs.value.push(...arrayToRender);
-            triggerRef(testLogs);
-            isStreamCurrentlyActive.value = false;
-            appEvents?.POPUP.next({
-                type: 'success',
-                message: 'Test execution completed successfully',
-            });
-        } else {
-            testLogs.value.push(...arrayToRender);
-            triggerRef(testLogs);
-            renderTestEvent();
+        switch (lastEvent?.type) {
+            case 'TEST_END':
+                testLogsSummary.value = arrayToRender.pop()!.data;
+                testLogs.value.push(...arrayToRender);
+                triggerRef(testLogs);
+                isStreamCurrentlyActive.value = false;
+                appEvents?.POPUP.next({
+                    type: 'success',
+                    message: 'Test execution completed successfully',
+                });
+                break;
+            case 'ERROR':
+                appEvents?.POPUP.next({
+                    type: 'error',
+                    message: lastEvent.data,
+                });
+                isStreamCurrentlyActive.value = false;
+                break;
+            default:
+                testLogs.value.push(...arrayToRender);
+                triggerRef(testLogs);
+                renderTestEvent();
         }
     });
 };

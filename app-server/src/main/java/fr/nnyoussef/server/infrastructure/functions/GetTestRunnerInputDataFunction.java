@@ -16,6 +16,7 @@ public final class GetTestRunnerInputDataFunction extends BaseFunction implement
 
     @Override
     public Object apply(String uuid) {
+
         return getCache().get(uuid, Function.identity());
     }
 }

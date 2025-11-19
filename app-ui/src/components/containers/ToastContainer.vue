@@ -12,7 +12,6 @@ const props = withDefaults(defineProps<ToastViewProps>(), {
 
 let toastId = 0;
 const items = ref<ToastItemsType[]>([]);
-const overflowReserve: typeof items.value = [];
 let toastRemovalWatchIsActive = false;
 
 onMounted(() => {
@@ -24,15 +23,6 @@ onMounted(() => {
 
                 if (!newVal) return;
                 const item = { ...newVal, id: toastId++ } as ToastItemsType;
-
-                if (list.length >= props.limit) {
-                    overflowReserve.push({ ...item });
-                    if (!toastRemovalWatchIsActive) {
-                        toastRemovalWatchIsActive = true;
-                        toastRemovalWatch(props.duration);
-                    }
-                    return;
-                }
                 item.timeStamp = Date.now();
                 // Add new item
                 list.push(item);
@@ -52,12 +42,6 @@ onMounted(() => {
 
                     if (remainingTime <= 0) {
                         items.value.shift();
-                        if (overflowReserve.length > 0) {
-                            const item = overflowReserve.shift() as (typeof items.value)[number];
-                            item.timeStamp = Date.now();
-                            items.value.push(item);
-                        }
-                        console.log('remainingTime', remainingTime);
                         remainingTime = calculateToastRemainingTime(items.value[0]);
                     }
                     toastRemovalWatch(remainingTime);

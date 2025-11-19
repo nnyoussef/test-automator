@@ -30,7 +30,6 @@ interface TooltipViewProps {
 interface ToastViewProps {
     to: string;
     duration?: number;
-    limit?: number;
     clearAll?: boolean;
     content?: {
         message: string;

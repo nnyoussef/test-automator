@@ -1,6 +1,11 @@
 package fr.nnyoussef.server.infrastructure.functions;
 
 import com.intuit.karate.core.Feature;
+import com.openai.client.OpenAIClient;
+import com.openai.client.okhttp.OpenAIOkHttpClient;
+import com.openai.models.ChatModel;
+import com.openai.models.responses.Response;
+import com.openai.models.responses.ResponseCreateParams;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -22,6 +27,7 @@ public final class ReadFeatureFromPathFunction extends BaseFunction implements F
     @Override
     public Feature apply(String path) {
         Path featurePath = of(getResDir(), path);
+
         return read(featurePath.toAbsolutePath().toFile());
     }
 }

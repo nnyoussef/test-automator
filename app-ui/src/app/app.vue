@@ -3,7 +3,7 @@ import { useRouter } from 'vue-router';
 import { onMounted, provide, ref } from 'vue';
 import { APP_EVENTS_INJECTION_KEY, type AppEvents } from './app.events.ts';
 import { useRequestAnimationFrame } from '@/components/composable/animation-frame.ts';
-import ToastView from '@/components/containers/ToastView.vue';
+import ToastContainer from '@/components/containers/ToastContainer.vue';
 import { Subject } from 'rxjs';
 import type { MessageLevel } from '@/common/types.ts';
 
@@ -53,12 +53,11 @@ onMounted(() => {
 
 <template>
     <div class="inflexible-container" style="height: 100%">
-        <ToastView
+        <ToastContainer
             :clearAll="clearAllPopup"
             :content="popMessage"
             to="#app-popups"
             :duration="5000"
-            :limit="5"
         />
         <RouterView />
     </div>
